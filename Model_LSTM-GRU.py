@@ -331,7 +331,7 @@ def main():
             'Sharpe':[shr_lstm, shr_1, shr_2]
         })
         table_ = table_.T
-        table_ = table_.rename(columns={0:'LSTM_GRU',1:'Allo_1',2:'Allo_2'})
+        table_ = table_.rename(columns={0:'LSTM_GRU',1:'Phương pháp phân bổ đều',2:'Chiến thuật phân bổ 80-20'})
         st.write("**Bảng so sánh 3 danh mục:**")
         st.dataframe(table_)
 
