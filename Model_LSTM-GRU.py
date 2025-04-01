@@ -328,16 +328,16 @@ def main():
 
         fig3, ax3 = plt.subplots(figsize=(8, 4))
         categories = table_.index.values
-        er_vals    = table_['Er'].values
-        std_vals   = table_['Std_dev'].values
-        shr_vals   = table_['Sharpe'].values
+        er_vals    = table_['Expected_return'].values
+        std_vals   = table_['Standard_deviation'].values
+        shr_vals   = table_['Sharpe_ratio'].values
 
         x_ = np.arange(len(categories))
         w_ = 0.2
 
-        ax3.bar(x_ - w_, er_vals,  w_, label='Er')
-        ax3.bar(x_,       std_vals, w_, label='Std_dev')
-        ax3.bar(x_ + w_, shr_vals, w_, label='Sharpe', color='green')
+        ax3.bar(x_ - w_, er_vals,  w_, label='Expected_return')
+        ax3.bar(x_,       std_vals, w_, label='Standard_deviation')
+        ax3.bar(x_ + w_, shr_vals, w_, label='Sharpe_ratio', color='green')
 
         ax3.set_xticks(x_)
         ax3.set_xticklabels(categories)
