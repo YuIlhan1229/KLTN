@@ -129,6 +129,8 @@ def main():
     Sau đó, ta tính Sharpe Ratio, chọn Top 10 cổ phiếu, huấn luyện LSTM-GRU.
     """)
 
+    industry = st.selectbox("Chọn ngành:", ["Xây dựng"], index=0)
+    
     default_start = "2018-01-01"
     default_end   = "2024-12-31"
 
@@ -137,8 +139,6 @@ def main():
         start_date = st.text_input("Ngày bắt đầu (YYYY-MM-DD):", value=default_start)
     with col2:
         end_date = st.text_input("Ngày kết thúc (YYYY-MM-DD):", value=default_end)
-
-    industry = st.selectbox("Chọn ngành:", ["Xây dựng"], index=0)
 
     # Tính năng Upload CSV
     st.write("**Tải lên file CSV (tuỳ chọn):**")
@@ -291,14 +291,6 @@ def main():
         #============================
         st.write("**So sánh với 2 phương pháp: Phân bổ đều & 80-20**")
 
-        # daily_returns top10, fillna(0)
-        daily_returns_top10 = daily_returns[top_10_symbols].copy()
-        daily_returns_top10.fillna(0, inplace=True)
-
-        # Tách train/test
-        train_rets = daily_returns_top10.loc[daily_returns_top10.index.year < 2024]
-        test_rets  = daily_returns_top10.loc[daily_returns_top10.index.year == 2024]
-
         # Allo_1 (phân bổ đều)
         Allo_1 = results_LSTM_GRU[['Asset']].copy()
         Allo_1['Weight'] = 1 / 10
@@ -317,18 +309,18 @@ def main():
         Allo_2 = Allo_2_temp[['Asset','Weight']]
 
         # Tính Er, std_dev, sharpe => test set
-        Er_lstm,  std_lstm  = port_char(results_LSTM_GRU, test_rets)
-        Er_1,     std_1     = port_char(Allo_1,          test_rets)
-        Er_2,     std_2     = port_char(Allo_2,          test_rets)
+        Er_lstm_gru,  std_lstm_gru  = port_char(results_LSTM_GRU, test_data)
+        Er_1,     std_1     = port_char(Allo_1,          test_data)
+        Er_2,     std_2     = port_char(Allo_2,          test_data)
 
-        shr_lstm = sharpe_port(results_LSTM_GRU, test_rets)
-        shr_1    = sharpe_port(Allo_1,          test_rets)
-        shr_2    = sharpe_port(Allo_2,          test_rets)
+        shr_lstm_gru = sharpe_port(results_LSTM_GRU, test_data)
+        shr_1    = sharpe_port(Allo_1,          test_data)
+        shr_2    = sharpe_port(Allo_2,          test_data)
 
         table_ = pd.DataFrame({
-            'Er': [Er_lstm, Er_1, Er_2],
-            'Std_dev': [std_lstm, std_1, std_2],
-            'Sharpe': [shr_lstm, shr_1, shr_2]
+            'Er': [Er_lstm_gru, Er_1, Er_2],
+            'Std_dev': [std_lstm_gru, std_1, std_2],
+            'Sharpe': [shr_lstm_gru, shr_1, shr_2]
         }, index=['LSTM_GRU','Phân bổ đều','80-20'])
 
         st.write("**Bảng so sánh danh mục trên Test set**")
