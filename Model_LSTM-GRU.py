@@ -145,7 +145,7 @@ def main():
         # 2) Tải dữ liệu cho tất cả các mã
         all_data = {}
         for ticker in list_ticker:
-            df_ = fetch_stock_data(ticker, default_start, default_date)
+            df_ = fetch_stock_data(ticker, default_start, default_end)
             if df_ is not None and not df_.empty:
                 all_data[ticker] = df_
 
