@@ -262,7 +262,7 @@ def main():
         st.write("**Phân bổ danh mục từ mô hình LSTM-GRU:**")
         st.dataframe(results_LSTM_GRU.sort_values('Weight', ascending=False))
 
-        fig, ax = plt.subplots(figsize=(8, 4))
+        fig, ax = plt.subplots(figsize=(12, 6))
         sorted_df = results_LSTM_GRU.sort_values('Weight', ascending=False)
         ax.bar(sorted_df['Asset'], sorted_df['Weight'], color='green')
         ax.set_xlabel('Tài sản')
@@ -272,7 +272,7 @@ def main():
         st.pyplot(fig)
 
         # Treemap
-        fig2, ax2 = plt.subplots(figsize=(6,6))
+        fig2, ax2 = plt.subplots(figsize=(15,15))
         square_plot_test = pd.DataFrame({
             'Cổ phiếu': sorted_df['Asset'],
             'Tỷ trọng': sorted_df['Weight']
