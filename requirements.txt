@@ -1,0 +1,7 @@
+streamlit
+vnstock
+tensorflow
+matplotlib
+pandas
+numpy
+squarify
