@@ -24,7 +24,10 @@ warnings.filterwarnings('ignore')
 def fetch_stock_data(ticker, start_date, end_date):
     """Tải dữ liệu giá đóng cửa, trả về DataFrame gồm cột 'close' và index = 'time'."""
     try:
-        dt = Vnstock().stock(symbol=ticker, source='VCI').quote.history(start=start_date, end=end_date)
+        dt = Vnstock().stock(symbol=ticker, source='VCI').quote.history(
+            start=start_date, 
+            end=end_date
+        )
         dt['time'] = pd.to_datetime(dt['time'])
         dt.set_index('time', inplace=True)
         dt = dt[['close']].copy()
