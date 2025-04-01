@@ -194,7 +194,7 @@ def main():
             combined_df = pd.concat(all_data.values(), axis=0).reset_index(drop=True)
 
         st.write("**Dữ liệu sau khi ghép (combined_df):**")
-        st.dataframe(combined_df.head(5))
+        st.dataframe(combined_df)
 
         #============================
         # BƯỚC 2: XỬ LÝ DỮ LIỆU
@@ -268,7 +268,7 @@ def main():
         ax.set_xlabel('Tài sản')
         ax.set_ylabel('Trọng số')
         ax.set_title('Phân bổ tài sản (LSTM-GRU)')
-        plt.xticks(rotation=90)
+        plt.xticks(rotation=0)
         st.pyplot(fig)
 
         # Treemap
