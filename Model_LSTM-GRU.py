@@ -308,19 +308,19 @@ def main():
         Allo_2_temp['Weight'] = top_weights + bottom_weights
         Allo_2 = Allo_2_temp[['Asset','Weight']]
 
-        # Tính Er, std_dev, sharpe => test set
-        Er_lstm_gru,  std_lstm_gru  = port_char(results_LSTM_GRU, test_data)
-        Er_1,     std_1     = port_char(Allo_1,          test_data)
-        Er_2,     std_2     = port_char(Allo_2,          test_data)
+        # Tính Expected_return, Standard_deviation, Sharpe_ratio => test set
+        Er_lstm_gru,  std_lstm_gru  = port_char(results_LSTM_GRU, test_price)
+        Er_1,     std_1     = port_char(Allo_1,          test_price)
+        Er_2,     std_2     = port_char(Allo_2,          test_price)
 
-        shr_lstm_gru = sharpe_port(results_LSTM_GRU, test_data)
-        shr_1    = sharpe_port(Allo_1,          test_data)
-        shr_2    = sharpe_port(Allo_2,          test_data)
+        shr_lstm_gru = sharpe_port(results_LSTM_GRU, test_price)
+        shr_1    = sharpe_port(Allo_1,          test_price)
+        shr_2    = sharpe_port(Allo_2,          test_price)
 
         table_ = pd.DataFrame({
-            'Er': [Er_lstm_gru, Er_1, Er_2],
-            'Std_dev': [std_lstm_gru, std_1, std_2],
-            'Sharpe': [shr_lstm_gru, shr_1, shr_2]
+            'Expected_return': [Er_lstm_gru, Er_1, Er_2],
+            'Standard_deviation': [std_lstm_gru, std_1, std_2],
+            'Sharpe_ratio': [shr_lstm_gru, shr_1, shr_2]
         }, index=['LSTM_GRU','Phân bổ đều','80-20'])
 
         st.write("**Bảng so sánh danh mục trên Test set**")
