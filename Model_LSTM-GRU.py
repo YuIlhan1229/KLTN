@@ -120,13 +120,13 @@ def sharpe_port(weights_df, returns_df, rf=0.016, freq=252):
 #========================
 
 def main():
-    st.title("Phân tích Sharpe Ratio & Xây dựng Danh mục (Phiên bản đồng nhất code cũ)")
+    st.title("Phân tích Sharpe Ratio & Xây dựng Danh mục (Cho phép Upload CSV)")
 
     st.markdown("""
-    Ứng dụng này tính toán Sharpe Ratio cho các cổ phiếu ngành Xây dựng (lấy Top 10), 
-    rồi huấn luyện mô hình LSTM-GRU để tối ưu danh mục. 
-    Sau đó, so sánh với hai phương pháp phân bổ (Phân bổ đều, 80-20) 
-    theo đúng trình tự giống code cũ, nhằm hạn chế sai lệch kết quả.
+    Ứng dụng này có hai tùy chọn:
+    1. Tải lên file CSV có dữ liệu 'time', 'ticker', 'close'.
+    2. Tự động tải dữ liệu từ `vnstock` (nếu không upload).
+    Sau đó, ta tính Sharpe Ratio, chọn Top 10 cổ phiếu, huấn luyện LSTM-GRU.
     """)
 
     default_start = "2018-01-01"
@@ -140,108 +140,134 @@ def main():
 
     industry = st.selectbox("Chọn ngành:", ["Xây dựng"], index=0)
 
+    # Tính năng Upload CSV
+    st.write("**Tải lên file CSV (tuỳ chọn):**")
+    uploaded_file = st.file_uploader("Chọn file CSV (cấu trúc gồm cột [time, ticker, close])", type=['csv'])
+
     if st.button("Tính toán"):
-        st.write("**Bắt đầu tải dữ liệu...**")
+        st.write("**Bắt đầu lấy dữ liệu & xử lý...**")
 
-        # 1) Lấy danh sách mã cổ phiếu
-        stock = Vnstock().stock(symbol='VN30F1M', source='VCI')
-        list_icb = stock.listing.symbols_by_industries()
-        list_ticker = list_icb[list_icb['icb_name4'] == industry]['symbol'].to_list()
+        #============================
+        # BƯỚC 1: LẤY DỮ LIỆU
+        #============================
 
-        list_exchange = stock.listing.symbols_by_exchange()[['symbol','type','exchange']]
-        df_filtered = list_exchange[
-            list_exchange['symbol'].isin(list_ticker) &
-            (
-                (list_exchange['exchange'] == 'HSX') | (list_exchange['exchange'] == 'HNX')
-            )
-        ]
-        list_ticker = df_filtered['symbol'].to_list()
+        if uploaded_file is not None:
+            # Người dùng đã up file => ta dùng data từ file
+            st.success("Đang sử dụng dữ liệu từ file CSV đã upload.")
+            combined_df = pd.read_csv(uploaded_file)
+            # Kiểm tra cột
+            required_cols = {'time','ticker','close'}
+            if not required_cols.issubset(combined_df.columns):
+                st.error("File CSV thiếu cột bắt buộc. Cần có [time, ticker, close].")
+                return
+            # Convert time => datetime & sort
+            combined_df['time'] = pd.to_datetime(combined_df['time'])
+            combined_df.sort_values('time', inplace=True)
+            combined_df.reset_index(drop=True, inplace=True)
 
-        all_data = {}
-        for ticker in list_ticker:
-            df_ = fetch_stock_data(ticker, start_date, end_date)
-            if df_ is not None and not df_.empty:
-                all_data[ticker] = df_
+        else:
+            # Không có file => ta lấy dữ liệu từ vnstock
+            st.info("Không upload file CSV => Tải dữ liệu từ vnstock.")
+            stock = Vnstock().stock(symbol='VN30F1M', source='VCI')
+            list_icb = stock.listing.symbols_by_industries()
+            list_ticker = list_icb[list_icb['icb_name4'] == industry]['symbol'].to_list()
 
-        if len(all_data) == 0:
-            st.error("Không tải được dữ liệu cổ phiếu nào. Vui lòng thử lại.")
-            return
+            list_exchange = stock.listing.symbols_by_exchange()[['symbol','type','exchange']]
+            df_filtered = list_exchange[
+                list_exchange['symbol'].isin(list_ticker) &
+                (
+                    (list_exchange['exchange'] == 'HSX') | (list_exchange['exchange'] == 'HNX')
+                )
+            ]
+            list_ticker = df_filtered['symbol'].to_list()
 
-        # 2) Ghép dữ liệu
-        combined_df = pd.concat(all_data.values(), axis=0)
-        combined_df.reset_index(inplace=True)
+            all_data = {}
+            for ticker in list_ticker:
+                df_ = fetch_stock_data(ticker, start_date, end_date)
+                if df_ is not None and not df_.empty:
+                    all_data[ticker] = df_
 
+            if len(all_data) == 0:
+                st.error("Không tải được dữ liệu cổ phiếu nào. Vui lòng thử lại hoặc upload CSV.")
+                return
+
+            combined_df = pd.concat(all_data.values(), axis=0).reset_index(drop=True)
+
+        st.write("**Dữ liệu sau khi ghép (combined_df):**")
+        st.dataframe(combined_df.head(5))
+
+        #============================
+        # BƯỚC 2: XỬ LÝ DỮ LIỆU
+        #============================
+
+        # pivot_df: index = time, columns = ticker, values = close
         pivot_df = combined_df.pivot(index="time", columns="ticker", values="close")
         pivot_df.sort_index(inplace=True)
-        pivot_df.fillna(0, inplace=True)  # giống code cũ => fillna=0
+        pivot_df.fillna(0, inplace=True)
 
-        # 3) Tính daily_returns (trước khi chia train/test)
+        # Tính daily_returns
         daily_returns = pivot_df.pct_change()
-        # Tính mean, std
         mean_daily_returns = daily_returns.mean()
         std_daily_returns  = daily_returns.std()
 
-        days_per_year      = 252
-        annual_returns     = mean_daily_returns * days_per_year
-        annual_volatility  = std_daily_returns * np.sqrt(days_per_year)
-        sharpe_ratio       = annual_returns / annual_volatility
+        days_per_year   = 252
+        annual_returns  = mean_daily_returns * days_per_year
+        annual_volatility = std_daily_returns * np.sqrt(days_per_year)
+        sharpe_ratio = annual_returns / annual_volatility
 
         df_sharpe = pd.DataFrame({
             'Annual Return': annual_returns,
             'Annual Volatility': annual_volatility,
             'Sharpe Ratio': sharpe_ratio
-        })
+        }).sort_values(by='Sharpe Ratio', ascending=False)
 
-        df_sharpe.sort_values(by='Sharpe Ratio', ascending=False, inplace=True)
-
-        # 4) Lấy Top 10
+        st.write("**Top 10 cổ phiếu theo Sharpe Ratio**")
         top_10 = df_sharpe.head(10)
+        st.dataframe(top_10)
+
         top_10_symbols = top_10.index.tolist()
         pivot_top10_df = pivot_df[top_10_symbols]
 
-        st.write("**Top 10 mã cổ phiếu & Sharpe**")
-        st.dataframe(top_10)
-
-        # 5) Tách train/test (vẫn theo code cũ: <2024 => train, ==2024 => test)
+        #============================
+        # BƯỚC 3: TÁCH TRAIN / TEST
+        #============================
         train_price = pivot_top10_df.loc[pivot_top10_df.index.year < 2024]
         test_price  = pivot_top10_df.loc[pivot_top10_df.index.year == 2024]
 
-        # Tương tự code cũ => Convert sang DataFrame, drop cột time
         train_price = train_price.reset_index()
         train_price.drop(columns=['time'], inplace=True)
 
         test_price = test_price.reset_index()
         test_price.drop(columns=['time'], inplace=True)
 
-        # 6) Xây dựng mô hình LSTM-GRU như code cũ
-        st.write("**Bắt đầu huấn luyện mô hình LSTM-GRU (giống code cũ)**")
+        #============================
+        # BƯỚC 4: HUẤN LUYỆN MÔ HÌNH LSTM-GRU
+        #============================
 
-        # Tạo X_train
-        X_train = train_price.values[np.newaxis, :, :]  # shape(1, T, 10)
-        y_train = np.zeros((1, train_price.shape[1]))   # shape(1, 10)
+        X_train = train_price.values[np.newaxis, :, :]
+        y_train = np.zeros((1, train_price.shape[1]))
 
-        sharpe_model = SharpeLossModel(pd.DataFrame(train_price))  # code cũ => dataFrame
+        sharpe_model = SharpeLossModel(pd.DataFrame(train_price))
 
         model_lstm_gru = build_lstm_gru_model(train_price.shape[0], train_price.shape[1])
         model_lstm_gru.compile(optimizer=Adam(), loss=sharpe_model.sharpe_loss)
 
-        # Huấn luyện => epochs=100 (giống code cũ) hoặc tuỳ
+        st.write("**Bắt đầu huấn luyện mô hình...** (epochs=100, batch_size=32)")
+
         model_lstm_gru.fit(X_train, y_train, epochs=100, batch_size=32, shuffle=False, verbose=1)
 
-        # Dự đoán ra weights
         weights_lstm_gru = model_lstm_gru.predict(X_train)[0]
-        results_LSTM_GRU = pd.DataFrame({'Asset':top_10_symbols, "Weight":weights_lstm_gru})
+        results_LSTM_GRU = pd.DataFrame({'Asset': top_10_symbols, "Weight": weights_lstm_gru})
 
-        st.write("**Phân bổ danh mục từ LSTM-GRU**")
+        st.write("**Phân bổ danh mục từ mô hình LSTM-GRU:**")
         st.dataframe(results_LSTM_GRU.sort_values('Weight', ascending=False))
 
-        # Vẽ biểu đồ cột
         fig, ax = plt.subplots(figsize=(8, 4))
         sorted_df = results_LSTM_GRU.sort_values('Weight', ascending=False)
         ax.bar(sorted_df['Asset'], sorted_df['Weight'], color='green')
         ax.set_xlabel('Tài sản')
         ax.set_ylabel('Trọng số')
-        ax.set_title('Phân bổ tài sản theo mô hình LSTM-GRU')
+        ax.set_title('Phân bổ tài sản (LSTM-GRU)')
         plt.xticks(rotation=90)
         st.pyplot(fig)
 
@@ -257,36 +283,31 @@ def main():
         squarify.plot(sizes=square_plot_test['Tỷ trọng'], label=square_plot_test['Nhãn'], color=colors,
                       alpha=.8, edgecolor='black', linewidth=2, text_kwargs={'fontsize':10})
         plt.axis('off')
-        plt.title('Biểu đồ phân bố tài sản (Treemap)')
+        plt.title('Treemap phân bổ danh mục (LSTM-GRU)')
         st.pyplot(fig2)
 
-        # 7) Tạo daily_returns train & test (để so sánh Allo_1, Allo_2)
-        #    Code cũ => daily_returns chung, ta tách 2 phần y hệt:
+        #============================
+        # BƯỚC 5: TÍNH TOÁN, SO SÁNH VỚI 2 PHƯƠNG PHÁP
+        #============================
+        st.write("**So sánh với 2 phương pháp: Phân bổ đều & 80-20**")
+
+        # daily_returns top10, fillna(0)
         daily_returns_top10 = daily_returns[top_10_symbols].copy()
+        daily_returns_top10.fillna(0, inplace=True)
+
+        # Tách train/test
         train_rets = daily_returns_top10.loc[daily_returns_top10.index.year < 2024]
         test_rets  = daily_returns_top10.loc[daily_returns_top10.index.year == 2024]
 
-        # fillna(0)
-        train_rets.fillna(0, inplace=True)
-        test_rets.fillna(0, inplace=True)
-
-        # Tính 2 phương pháp Allo_1, Allo_2 => tương tự code cũ
-        st.write("**So sánh với 2 chiến lược: Phân bổ đều & 80-20**")
-
+        # Allo_1 (phân bổ đều)
         Allo_1 = results_LSTM_GRU[['Asset']].copy()
-        Allo_1['Weight'] = 1.0 / 10.0
+        Allo_1['Weight'] = 1 / 10
 
-        # Allo_2: Tính sum train_price, xếp hạng
-        mcp = train_price.columns
-        # Bỏ cột 'Asset' => cẩn thận: mcp = [time?? => tuỳ] => check:
-        # Thường: train_price cột = top_10_symbols => time?
-        # Tách 'time' ra hay check?
-        # Ta debug: ta drop time column => ok, bây giờ mcp= list of top10 ticker
-
+        # Allo_2 (80-20)
+        mcp = train_price.columns  # cột = top_10_symbols
         Allo_2_temp = train_price.sum().sort_values(ascending=False).reset_index()
         Allo_2_temp.columns = ['Asset','Er']
-
-        top_count = int(0.2 * len(mcp))  # top 20%
+        top_count = int(0.2 * len(mcp))
         bottom_count = len(mcp) - top_count
 
         top_weights = [0.8 / (0.2 * len(mcp))] * top_count
@@ -295,69 +316,46 @@ def main():
         Allo_2_temp['Weight'] = top_weights + bottom_weights
         Allo_2 = Allo_2_temp[['Asset','Weight']]
 
-        # Tính Er, std_dev
-        Er_lstm, std_lstm = port_char(results_LSTM_GRU, test_rets)
-        Er_1, std_1 = port_char(Allo_1, test_rets)
-        Er_2, std_2 = port_char(Allo_2, test_rets)
+        # Tính Er, std_dev, sharpe => test set
+        Er_lstm,  std_lstm  = port_char(results_LSTM_GRU, test_rets)
+        Er_1,     std_1     = port_char(Allo_1,          test_rets)
+        Er_2,     std_2     = port_char(Allo_2,          test_rets)
 
         shr_lstm = sharpe_port(results_LSTM_GRU, test_rets)
-        shr_1    = sharpe_port(Allo_1, test_rets)
-        shr_2    = sharpe_port(Allo_2, test_rets)
+        shr_1    = sharpe_port(Allo_1,          test_rets)
+        shr_2    = sharpe_port(Allo_2,          test_rets)
 
         table_ = pd.DataFrame({
             'Er': [Er_lstm, Er_1, Er_2],
             'Std_dev': [std_lstm, std_1, std_2],
             'Sharpe': [shr_lstm, shr_1, shr_2]
-        }, index=['LSTM_GRU','Phân bổ đều','Phân bổ 80-20'])
+        }, index=['LSTM_GRU','Phân bổ đều','80-20'])
 
-        st.write("**Bảng so sánh 3 danh mục** (test set) :")
+        st.write("**Bảng so sánh danh mục trên Test set**")
         st.dataframe(table_.T)
 
-        # Biểu đồ so sánh
         fig3, ax3 = plt.subplots(figsize=(8, 4))
-
         categories = table_.index.values
-        er_values = table_['Er'].values
-        std_values = table_['Std_dev'].values
-        sharpe_values = table_['Sharpe'].values
+        er_vals    = table_['Er'].values
+        std_vals   = table_['Std_dev'].values
+        shr_vals   = table_['Sharpe'].values
 
-        x_corr = np.arange(len(categories))
-        width = 0.2
+        x_ = np.arange(len(categories))
+        w_ = 0.2
 
-        ax3.bar(x_corr - width, er_values, width, label='Er')
-        ax3.bar(x_corr, std_values, width, label='Std dev')
-        ax3.bar(x_corr + width, sharpe_values, width, label='Sharpe', color='green')
-        ax3.set_xticks(x_corr)
+        ax3.bar(x_ - w_, er_vals,  w_, label='Er')
+        ax3.bar(x_,       std_vals, w_, label='Std_dev')
+        ax3.bar(x_ + w_, shr_vals, w_, label='Sharpe', color='green')
+
+        ax3.set_xticks(x_)
         ax3.set_xticklabels(categories)
         ax3.set_ylabel("Giá trị")
-        ax3.set_title("So sánh Er, Std_dev, Sharpe các danh mục (Test set)")
         ax3.legend()
+        ax3.set_title("So sánh Er, Std_dev, Sharpe (Test set)")
 
         st.pyplot(fig3)
 
-        st.success("Hoàn tất - Code Streamlit đã đồng bộ logic với code cũ!")
-
-        #========================
-        # Thêm phần in ra shape, head, tail để so sánh
-        #========================
-        with st.expander("So sánh data frames (Kiểm tra)"):
-            st.write("**pivot_df shape:**", pivot_df.shape)
-            st.write("**train_price shape:**", train_price.shape)
-            st.write("**test_price shape:**", test_price.shape)
-            st.write("**daily_returns_top10 shape:**", daily_returns_top10.shape)
-            st.write("**train_rets shape:**", train_rets.shape)
-            st.write("**test_rets shape:**", test_rets.shape)
-
-            st.write("**train_price HEAD**")
-            st.dataframe(train_price.head(3))
-            st.write("**train_price TAIL**")
-            st.dataframe(train_price.tail(3))
-
-            st.write("**daily_returns_top10 HEAD**")
-            st.dataframe(daily_returns_top10.head(3))
-
-            st.write("**Kết quả LSTM_GRU**")
-            st.dataframe(results_LSTM_GRU)
+        st.success("Hoàn tất quá trình tính toán & trực quan (có tính năng upload CSV).")
 
 if __name__ == '__main__':
     main()
