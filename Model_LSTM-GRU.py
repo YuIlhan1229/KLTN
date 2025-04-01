@@ -327,7 +327,7 @@ def main():
         st.dataframe(table_.T)
 
         fig3, ax3 = plt.subplots(figsize=(8, 4))
-        categories = table_.index.values
+        categories = table_.columns.values
         er_vals    = table_['Expected_return'].values
         std_vals   = table_['Standard_deviation'].values
         shr_vals   = table_['Sharpe_ratio'].values
