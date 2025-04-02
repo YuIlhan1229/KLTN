@@ -170,7 +170,6 @@ def main():
     Ứng dụng này có hai tùy chọn:
     1. Tải lên file CSV có dữ liệu 'time', 'ticker', 'close'.
     2. Tự động tải dữ liệu từ `vnstock` (nếu không upload).
-    Hệ thống sẽ tự động tính Sharpe Ratio, chọn Top 10 cổ phiếu và huấn luyện mô hình LSTM-GRU.
     """)
     industries = [
         'Bán lẻ phức hợp',
@@ -303,6 +302,7 @@ def main():
     if st.button("Nhấn để bắt đầu tính toán"):
         st.write("**Bắt đầu lấy dữ liệu & xử lý...**")
 
+
         #============================
         # BƯỚC 1: LẤY DỮ LIỆU
         #============================
@@ -340,6 +340,8 @@ def main():
             combined_df = pd.concat(all_data.values(), axis=0).reset_index(drop=True)
 
         st.write("Các cột của combined_df:", combined_df.columns)
+        # Chuẩn hóa tên cột: chuyển về chữ thường và loại bỏ khoảng trắng thừa
+        combined_df.columns = combined_df.columns.str.lower().str.strip()
 
         #============================
         # BƯỚC 2: XỬ LÝ DỮ LIỆU
