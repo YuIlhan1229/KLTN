@@ -68,11 +68,26 @@ add_bg_from_local('background.png')
 #========================
 # Hiển thị logo và tiêu đề
 #========================
-col_logo, col_title = st.columns([1, 1])
+# Sử dụng st.columns để chia layout thành 2 cột:
+# - Cột đầu tiên (col_logo) dành cho logo.
+# - Cột thứ hai (col_title) dành cho tiêu đề.
+# Tỷ lệ các cột có thể tùy chỉnh (ví dụ: [1, 4] để cột tiêu đề chiếm nhiều không gian hơn).
+col_logo, col_title = st.columns([1, 4])
+
 with col_logo:
-    st.image("Logo_HUB.png", width=10) 
+    # st.image hiển thị hình ảnh logo.
+    # Tham số 'width' điều chỉnh kích thước logo (đơn vị pixel).
+    # Thử thay đổi giá trị width (ví dụ: 100, 150, 200) để phù hợp với giao diện.
+    st.image("Logo_HUB.png", width=1500)
+
 with col_title:
-    st.markdown('<h1 class="custom-title">Applying deep learning to portfolio optimization in the Vietnamese stock market</h1>', unsafe_allow_html=True)
+    # Sử dụng st.markdown để hiển thị tiêu đề với HTML/CSS tùy chỉnh.
+    # Bạn có thể chỉnh sửa màu sắc, kích thước hoặc kiểu chữ thông qua class 'custom-title'.
+    st.markdown(
+        '<h1 class="custom-title">Applying deep learning to portfolio optimization in the Vietnamese stock market</h1>', 
+        unsafe_allow_html=True
+    )
+
 
 #========================
 # Các hàm lấy dữ liệu và xây dựng mô hình
