@@ -83,7 +83,7 @@ with col_title:
     st.markdown(
         """
         <h1 style="margin-bottom: 0px; color: #0B5394;">TRƯỜNG ĐẠI HỌC NGÂN HÀNG THÀNH PHỐ HỒ CHÍ MINH</h1>
-        <h2 class="custom-title">Xây dựng danh mục đầu tư tối ưu bằng mô hình LSTM - GRU</h2>
+        <h2 class="margin-bottom">Xây dựng danh mục đầu tư tối ưu bằng mô hình LSTM - GRU</h2>
         """,
         unsafe_allow_html=True
     )
