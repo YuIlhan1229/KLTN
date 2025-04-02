@@ -19,7 +19,7 @@ st.set_page_config(
     page_icon="📊"
 )
 
-# Vì Streamlit dùng cơ chế vẽ inline, ta import pyplot ở chế độ "inline" bằng matplotlib:
+# Vì Streamlit dùng cơ chế vẽ inline, ta import pyplot ở chế độ "inline"
 plt.switch_backend('Agg')
 
 #========================
@@ -49,7 +49,7 @@ def add_bg_from_local(image_file):
     .stApp {{
         background-image: url(data:image/{"png"};base64,{encoded_string.decode()});
         background-size: cover;
-        background-color: rgba(255, 255, 255, 0.7); /* Điều chỉnh độ mờ ở đây */
+        background-color: rgba(255, 255, 255, 0.7);
         background-blend-mode: overlay;
     }}
     .custom-title {{
@@ -62,6 +62,17 @@ def add_bg_from_local(image_file):
     """,
     unsafe_allow_html=True
     )
+
+add_bg_from_local('background.png')
+
+#========================
+# Hiển thị logo và tiêu đề
+#========================
+col_logo, col_title = st.columns([1, 5])
+with col_logo:
+    st.image("small_logo.png", width=100)  # Đảm bảo file "small_logo.png" tồn tại
+with col_title:
+    st.markdown('<h1 class="custom-title">Applying deep learning to portfolio optimization in the Vietnamese stock market</h1>', unsafe_allow_html=True)
 
 #========================
 # Các hàm lấy dữ liệu và xây dựng mô hình
@@ -89,7 +100,7 @@ class SharpeLossModel:
 
     def sharpe_loss(self, _, y_pred):
         """Mất mát = -Sharpe => mô hình cực đại hoá Sharpe."""
-        data_normalized = self.data / (self.data[0] + K.epsilon())  # shape (T,10)
+        data_normalized = self.data / (self.data[0] + K.epsilon())
         portfolio_values = tf.reduce_sum(data_normalized * y_pred[0], axis=1)
         pvals_shift = portfolio_values[:-1]
         pvals_curr  = portfolio_values[1:]
@@ -98,7 +109,6 @@ class SharpeLossModel:
         mean_r = K.mean(daily_ret)
         std_r  = K.std(daily_ret) + K.epsilon()
 
-        # Lãi suất phi rủi ro
         rf = 0.016
         rf_period = rf / 252
 
@@ -114,11 +124,6 @@ def build_lstm_gru_model(timesteps, n_assets):
     return model
 
 def port_char(weights_df, returns_df):
-    """
-    Tính (Er, std_dev) cho danh mục.
-    - weights_df: DataFrame gồm ['Asset','Weight'].
-    - returns_df: DataFrame gồm cột = tên Asset, giá trị = returns.
-    """
     Er_ = returns_df.mean().reset_index()
     Er_.columns = ['Asset','Er']
     weights_merged = pd.merge(weights_df, Er_, on='Asset', how='left')
@@ -141,8 +146,7 @@ def sharpe_port(weights_df, returns_df, rf=0.016, freq=252):
 # 2) CODE STREAMLIT
 #========================
 
-def main():   
-    st.title("Danh mục đầu tư tối ưu thông qua mô hình LSTM-GRU")
+def main():
     st.markdown("""
     Ứng dụng này có hai tùy chọn:
     1. Tải lên file CSV có dữ liệu 'time', 'ticker', 'close'.
@@ -151,45 +155,42 @@ def main():
     """)
 
     industry = st.selectbox("Chọn ngành:", ["Xây dựng"], index=0)
+    
+    #========================
+    # Nhập khoảng thời gian
+    #========================
+    default_start = "2018-01-01"
+    default_end   = "2024-12-31"
+    # Chuyển đổi chuỗi sang date object
+    default_start_date = datetime.strptime(default_start, '%Y-%m-%d').date()
+    default_end_date = datetime.strptime(default_end, '%Y-%m-%d').date()
 
-    #========================
-    # Hiển thị khoảng thời gian đã chọn
-    #========================
     col1, col2 = st.columns(2)
     with col1:
-        start_date = st.date_input(":red[Choose start date]", value=None)
+        start_date = st.date_input(":red[Choose start date]", value=default_start_date)
     with col2:
-        end_date = st.date_input(":red[Choose end date]", value=None)
+        end_date = st.date_input(":red[Choose end date]", value=default_end_date)
 
-    # Ngày hôm nay
     today = datetime.today().date()
 
-    if start_date is not None and end_date is not None:
+    if start_date and end_date:
         if end_date > today:
             st.error("Lỗi: The end date cannot be later than today.")
         elif start_date <= end_date and (end_date - start_date) > timedelta(weeks=4):
             st.success(f"You have chosen the period from {start_date} to {end_date}")
         else:
             st.error("Lỗi: The end date must be after the start date, and the period must be sufficiently long.")
-
-    if start_date and end_date and start_date <= end_date and (end_date - start_date) > timedelta(weeks=4) and end_date < today:
-        if st.button("Click the button to start"):
-            st.success("Automated trading and portfolio allocation in progress.")
-            start_date_str = start_date.strftime('%Y-%m-%d')
-            end_date_str = end_date.strftime('%Y-%m-%d')
     
-    # Các input ngày đã được xử lý phía trên
-    # Nếu đã nhập start_date_str và end_date_str, sử dụng chúng, nếu không dùng mặc định
-    default_start = "2018-01-01"
-    default_end   = "2024-12-31"
-    if 'start_date_str' not in locals():
-        start_date_str = default_start
-    if 'end_date_str' not in locals():
-        end_date_str = default_end
+    # Nếu người dùng không thay đổi ngày (vẫn mặc định)
+    if start_date == default_start_date and end_date == default_end_date:
+        st.info(f"Default date range selected: {default_start} to {default_end}")
 
+    # Sử dụng giá trị ngày dưới dạng chuỗi
+    start_date_str = start_date.strftime('%Y-%m-%d')
+    end_date_str = end_date.strftime('%Y-%m-%d')
+    
     st.write(f"**Dữ liệu từ {start_date_str} đến {end_date_str}**")
     
-    # Tính năng Upload CSV
     st.write("**Tải lên file CSV (tuỳ chọn):**")
     uploaded_file = st.file_uploader("Chọn file CSV (cấu trúc gồm cột [time, ticker, close])", type=['csv'])
 
@@ -227,11 +228,9 @@ def main():
                 df_ = fetch_stock_data(ticker, start_date_str, end_date_str)
                 if df_ is not None and not df_.empty:
                     all_data[ticker] = df_
-
             if len(all_data) == 0:
                 st.error("Không tải được dữ liệu cổ phiếu nào. Vui lòng thử lại hoặc upload CSV.")
                 return
-
             combined_df = pd.concat(all_data.values(), axis=0).reset_index(drop=True)
 
         st.write("**Cấu trúc dữ liệu:**")
@@ -281,7 +280,6 @@ def main():
         y_train = np.zeros((1, train_price.shape[1]))
 
         sharpe_model = SharpeLossModel(pd.DataFrame(train_price))
-
         model_lstm_gru = build_lstm_gru_model(train_price.shape[0], train_price.shape[1])
         model_lstm_gru.compile(optimizer=Adam(), loss=sharpe_model.sharpe_loss)
 
