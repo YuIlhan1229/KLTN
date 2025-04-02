@@ -199,14 +199,14 @@ def main():
     if start_date and end_date:
         if end_date > today:
             st.error("Lỗi: The end date cannot be later than today.")
-        # Nếu người dùng không thay đổi ngày (vẫn mặc định)
-        elif:
+        else:
             if start_date <= end_date and (end_date - start_date) > timedelta(weeks=4):
                 st.success(f"You have chosen the period from {start_date} to {end_date}")
-            else start_date == default_start_date and end_date == default_end_date:
-                st.info(f"Default date range selected: {default_start} to {default_end}")
-        else:
-            st.error("Lỗi: The end date must be after the start date, and the period must be sufficiently long.")
+            elif start_date == default_start_date and end_date == default_end_date:
+                st.info(f"Default date range selected: {default_start} to {default_end}")    # Nếu người dùng không thay đổi ngày (vẫn mặc định)
+            else:
+                st.error("Lỗi: The end date must be after the start date, and the period must be sufficiently long.")
+
 
     # Sử dụng giá trị ngày dưới dạng chuỗi
     start_date_str = start_date.strftime('%Y-%m-%d')
