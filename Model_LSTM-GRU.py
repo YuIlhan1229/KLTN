@@ -380,7 +380,7 @@ def main():
         ax3.set_title("So sánh Er, Std_dev, Sharpe (Test set)")
 
         st.pyplot(fig3)
-        st.success("Hoàn tất quá trình tính toán & trực quan (có tính năng upload CSV).")
+        st.success("Hoàn tất quá trình tính toán & trực quan.")
 
 if __name__ == '__main__':
     main()
