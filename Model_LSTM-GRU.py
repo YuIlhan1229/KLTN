@@ -72,13 +72,13 @@ add_bg_from_local('background.png')
 # - Cột đầu tiên (col_logo) dành cho logo.
 # - Cột thứ hai (col_title) dành cho tiêu đề.
 # Tỷ lệ các cột có thể tùy chỉnh (ví dụ: [1, 4] để cột tiêu đề chiếm nhiều không gian hơn).
-col_logo, col_title = st.columns([1, 4])
+col_logo, col_title = st.columns([1, 5])
 
 with col_logo:
     # st.image hiển thị hình ảnh logo.
     # Tham số 'width' điều chỉnh kích thước logo (đơn vị pixel).
     # Thử thay đổi giá trị width (ví dụ: 100, 150, 200) để phù hợp với giao diện.
-    st.image("Logo_HUB.png", width=1500)
+    st.image("Logo_HUB.png", width=100)
 
 with col_title:
     # Sử dụng st.markdown để hiển thị tiêu đề với HTML/CSS tùy chỉnh.
