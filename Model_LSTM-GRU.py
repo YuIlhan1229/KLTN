@@ -82,7 +82,7 @@ with col_title:
     # Hiển thị tiêu đề chính: Tên trường
     st.markdown(
         """
-        <h1 style="color: #0B5394; text-align: center; font-size: 24px;">TRƯỜNG ĐẠI HỌC NGÂN HÀNG THÀNH PHỐ HỒ CHÍ MINH</h1>
+        <h1 style="color: #0B5394; text-align: center; font-size: 32px;">TRƯỜNG ĐẠI HỌC NGÂN HÀNG THÀNH PHỐ HỒ CHÍ MINH</h1>
         """,
         unsafe_allow_html=True
     )
@@ -90,7 +90,7 @@ with col_title:
 # Tiêu đề phụ độc lập (không nằm trong layout 2 cột)
 st.markdown(
     """
-    <h2 style="color: #333; text-align: center; font-size: 28px; margin-top: 10px;">
+    <h2 style="color: #333; text-align: center; font-size: 40px; margin-top: 10px;">
         Xây dựng danh mục đầu tư tối ưu bằng mô hình LSTM - GRU
     </h2>
     """,
