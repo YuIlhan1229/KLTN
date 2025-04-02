@@ -76,14 +76,16 @@ col_logo, col_title = st.columns([1, 4])
 
 with col_logo:
     # Hiển thị logo, có thể điều chỉnh 'width' để tăng/giảm kích thước ảnh
-    st.image("Logo_HUB.png", width=400)  
+    st.image("Logo_HUB.png", width=400)
 
 with col_title:
-    # Tiêu đề và mô tả, dùng HTML + CSS tuỳ chỉnh (unsafe_allow_html=True)
+    # Tiêu đề được căn giữa với CSS, tiêu đề 1 và tiêu đề 2 độc lập, có kích thước chữ khác nhau
     st.markdown(
         """
-        <h1 style="margin-bottom: 0px; color: #0B5394;">TRƯỜNG ĐẠI HỌC NGÂN HÀNG THÀNH PHỐ HỒ CHÍ MINH</h1>
-        <h2 class="margin-bottom">Xây dựng danh mục đầu tư tối ưu bằng mô hình LSTM - GRU</h2>
+        <div style="text-align: center;">
+            <h1 style="margin-bottom: 0px; color: #0B5394; font-size: 32px;">TRƯỜNG ĐẠI HỌC NGÂN HÀNG THÀNH PHỐ HỒ CHÍ MINH</h1>
+            <h2 style="margin-top: 5px; color: #333; font-size: 24px;">Xây dựng danh mục đầu tư tối ưu bằng mô hình LSTM - GRU</h2>
+        </div>
         """,
         unsafe_allow_html=True
     )
