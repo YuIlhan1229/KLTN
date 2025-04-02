@@ -339,7 +339,7 @@ def main():
                 return
             combined_df = pd.concat(all_data.values(), axis=0).reset_index(drop=True)
 
-        st.write("Các cột của combined_df:", combined_df.columns)
+        st.write("Dữ liệu của combined_df:", combined_df)
         # Chuẩn hóa tên cột: chuyển về chữ thường và loại bỏ khoảng trắng thừa
         combined_df.columns = combined_df.columns.str.lower().str.strip()
 
