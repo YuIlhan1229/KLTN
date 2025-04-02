@@ -58,14 +58,6 @@ def add_bg_from_local(image_file):
     unsafe_allow_html=True
     )
 
-add_bg_from_local('background.png')
-
-st.logo("big_logo.png", size='large', icon_image="small_logo.png")
-st.image("banner.png")
-
-st.markdown('<h1 class="custom-title">Applying deep learning to portfolio optimization in the Vietnamese stock market</h1>', unsafe_allow_html=True)
-st.markdown('<p style="color: #30475E;">Select the data input method you want.</p>', unsafe_allow_html=True)
-
 #========================
 # Hiển thị khoảng thời gian đã chọn
 #========================
