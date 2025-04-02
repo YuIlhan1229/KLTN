@@ -256,8 +256,10 @@ def main():
                 return
             combined_df = pd.concat(all_data.values(), axis=0).reset_index(drop=True)
 
-        st.write("**Cấu trúc dữ liệu:**")
-        st.dataframe(combined_df)
+        st.write("Các cột của combined_df:", combined_df.columns)
+
+        # Nếu cần chuyển về chữ thường và loại bỏ khoảng trắng:
+        # combined_df.columns = combined_df.columns.str.lower().str.strip()
 
         #============================
         # BƯỚC 2: XỬ LÝ DỮ LIỆU
