@@ -19,7 +19,7 @@ st.set_page_config(
     page_icon="📊"
 )
 
-# Vì Streamlit dùng cơ chế vẽ inline, ta import pyplot ở chế độ "inline"
+# Vì Streamlit dùng cơ chế vẽ inline, ta chuyển backend của matplotlib
 plt.switch_backend('Agg')
 
 #========================
@@ -41,13 +41,13 @@ warnings.filterwarnings('ignore')
 #========================
 
 def add_bg_from_local(image_file):
-    with open(image_file, "rb") as image_file:
-        encoded_string = base64.b64encode(image_file.read())
+    with open(image_file, "rb") as image_file_obj:
+        encoded_string = base64.b64encode(image_file_obj.read())
     st.markdown(
     f"""
     <style>
     .stApp {{
-        background-image: url(data:image/{"png"};base64,{encoded_string.decode()});
+        background-image: url(data:image/png;base64,{encoded_string.decode()});
         background-size: cover;
         background-color: rgba(255, 255, 255, 0.7);
         background-blend-mode: overlay;
@@ -69,10 +69,8 @@ add_bg_from_local('background.png')
 # Hiển thị logo và tiêu đề
 #========================
 col_logo, col_title = st.columns([1, 4])
-
 with col_logo:
     st.image("Logo_HUB.png", width=400)
-
 with col_title:
     st.markdown(
         """
@@ -80,7 +78,6 @@ with col_title:
         """,
         unsafe_allow_html=True
     )
-
 st.markdown(
     """
     <h2 style="color: #333; text-align: center; font-size: 40px; margin-top: 10px;">
@@ -106,16 +103,17 @@ def fetch_stock_data(ticker, start_date, end_date):
         dt = dt[['close']].copy()
         dt['ticker'] = ticker
         return dt
-    except:
+    except Exception as e:
+        st.error(f"Lỗi khi tải dữ liệu cho {ticker}: {e}")
         return None
 
 class SharpeLossModel:
     def __init__(self, data):
-        # data shape (T, 10)
+        # data shape (T, n_assets)
         self.data = tf.constant(data.values, dtype=tf.float32)
 
     def sharpe_loss(self, _, y_pred):
-        """Mất mát = -Sharpe => mô hình cực đại hoá Sharpe."""
+        """Mất mát = -Sharpe => mục tiêu là tối đa hóa Sharpe Ratio."""
         data_normalized = self.data / (self.data[0] + K.epsilon())
         portfolio_values = tf.reduce_sum(data_normalized * y_pred[0], axis=1)
         pvals_shift = portfolio_values[:-1]
@@ -140,6 +138,11 @@ def build_lstm_gru_model(timesteps, n_assets):
     return model
 
 def port_char(weights_df, returns_df):
+    """
+    Tính kỳ vọng lợi nhuận (Er) và độ lệch chuẩn (std_dev) của danh mục.
+    - weights_df: DataFrame gồm ['Asset','Weight'].
+    - returns_df: DataFrame các cột là tên Asset, giá trị là returns.
+    """
     Er_ = returns_df.mean().reset_index()
     Er_.columns = ['Asset','Er']
     weights_merged = pd.merge(weights_df, Er_, on='Asset', how='left')
@@ -167,9 +170,8 @@ def main():
     Ứng dụng này có hai tùy chọn:
     1. Tải lên file CSV có dữ liệu 'time', 'ticker', 'close'.
     2. Tự động tải dữ liệu từ `vnstock` (nếu không upload).
-    Sau đó, hệ thống tự động tính Sharpe Ratio, chọn Top 10 cổ phiếu, huấn luyện mô hình LSTM-GRU.
+    Hệ thống sẽ tự động tính Sharpe Ratio, chọn Top 10 cổ phiếu và huấn luyện mô hình LSTM-GRU.
     """)
-
     industry = st.selectbox("Chọn ngành:", ["Xây dựng"], index=0)
     
     #========================
@@ -199,7 +201,7 @@ def main():
             else:
                 st.error("Lỗi: The end date must be after the start date, and the period must be sufficiently long.")
 
-    # Chuyển đổi ngày sang chuỗi
+    # Sử dụng giá trị ngày dưới dạng chuỗi
     start_date_str = start_date.strftime('%Y-%m-%d')
     end_date_str = end_date.strftime('%Y-%m-%d')
     
@@ -217,15 +219,12 @@ def main():
         if uploaded_file is not None:
             st.success("Đang sử dụng dữ liệu từ file CSV đã upload.")
             combined_df = pd.read_csv(uploaded_file)
-            # Chuẩn hóa tên cột: chuyển về chữ thường và loại bỏ khoảng trắng
-            combined_df.columns = combined_df.columns.str.lower().str.strip()
             required_cols = {'time','ticker','close'}
             if not required_cols.issubset(combined_df.columns):
                 st.error("File CSV thiếu cột bắt buộc. Cần có [time, ticker, close].")
                 return
             combined_df['time'] = pd.to_datetime(combined_df['time'])
             combined_df.sort_values('time', inplace=True)
-            # Ở trường hợp CSV, cột "time" vẫn nằm trong DataFrame
             combined_df.reset_index(drop=True, inplace=True)
         else:
             st.info("Không upload file CSV => Tải dữ liệu từ vnstock.")
@@ -248,17 +247,21 @@ def main():
             if len(all_data) == 0:
                 st.error("Không tải được dữ liệu cổ phiếu nào. Vui lòng thử lại hoặc upload CSV.")
                 return
-            # Khi dùng vnstock, reset_index() KHÔNG drop để giữ cột "time"
-            combined_df = pd.concat(all_data.values(), axis=0).reset_index()
+            combined_df = pd.concat(all_data.values(), axis=0).reset_index(drop=True)
 
         st.write("Các cột của combined_df:", combined_df.columns)
+        # Chuẩn hóa tên cột: chuyển về chữ thường và loại bỏ khoảng trắng thừa
+        combined_df.columns = combined_df.columns.str.lower().str.strip()
 
         #============================
         # BƯỚC 2: XỬ LÝ DỮ LIỆU
         #============================
-        # Chú ý: Trong trường hợp CSV, DataFrame đã có cột "time"
-        # Trong trường hợp vnstock, reset_index() không drop nên cột "time" sẽ xuất hiện.
-        pivot_df = combined_df.pivot(index="time", columns="ticker", values="close")
+        try:
+            pivot_df = combined_df.pivot(index="time", columns="ticker", values="close")
+        except KeyError as e:
+            st.error(f"Lỗi khi pivot dữ liệu: {e}. Kiểm tra lại tên cột của DataFrame.")
+            return
+
         pivot_df.sort_index(inplace=True)
         pivot_df.fillna(0, inplace=True)
 
@@ -271,10 +274,10 @@ def main():
         sharpe_ratio = annual_returns / annual_volatility
 
         df_sharpe = pd.DataFrame({
-            'Annual Return': annual_returns,
-            'Annual Volatility': annual_volatility,
-            'Sharpe Ratio': sharpe_ratio
-        }).sort_values(by='Sharpe Ratio', ascending=False)
+            'annual return': annual_returns,
+            'annual volatility': annual_volatility,
+            'sharpe ratio': sharpe_ratio
+        }).sort_values(by='sharpe ratio', ascending=False)
 
         st.write("**Top 10 cổ phiếu theo Sharpe Ratio**")
         top_10 = df_sharpe.head(10)
@@ -309,73 +312,26 @@ def main():
         results_LSTM_GRU = pd.DataFrame({'Asset': top_10_symbols, "Weight": weights_lstm_gru})
 
         st.write("**Phân bổ danh mục từ mô hình LSTM-GRU:**")
-        st.dataframe(results_LSTM_GRU.sort_values('Weight', ascending=False))
+        # Chuyển đổi trọng số thành % và làm tròn
+        results_LSTM_GRU['Weight (%)'] = (results_LSTM_GRU['Weight'] * 100).round(2).astype(str) + "%"
+        st.dataframe(results_LSTM_GRU[['Asset', 'Weight (%)']].sort_values('Weight (%)', ascending=False))
 
+        # Hiển thị tỷ trọng phân bổ dưới dạng biểu đồ cột
         fig, ax = plt.subplots(figsize=(12, 6))
         sorted_df = results_LSTM_GRU.sort_values('Weight', ascending=False)
-        ax.bar(sorted_df['Asset'], sorted_df['Weight'], color='green')
+        ax.bar(sorted_df['Asset'], sorted_df['Weight']*100, color='green')  # nhân 100 để hiển thị %
         ax.set_xlabel('Tài sản')
-        ax.set_ylabel('Trọng số')
+        ax.set_ylabel('Trọng số (%)')
         ax.set_title('Phân bổ tài sản (LSTM-GRU)')
         plt.xticks(rotation=0)
         st.pyplot(fig)
 
-        #============================
-        # BƯỚC 5: TÍNH TOÁN VÀ SO SÁNH VỚI 2 PHƯƠNG PHÁP
-        #============================
-        st.write("**So sánh với 2 phương pháp: Phân bổ đồng đều & 80-20**")
+        # Hiển thị tỷ trọng phân bổ dưới dạng biểu đồ tròn (pie chart)
+        fig_pie, ax_pie = plt.subplots(figsize=(8, 8))
+        ax_pie.pie(sorted_df['Weight']*100, labels=sorted_df['Asset'], autopct='%1.1f%%', startangle=90)
+        ax_pie.set_title("Tỷ trọng phân bổ (LSTM-GRU) - Pie Chart")
+        st.pyplot(fig_pie)
 
-        # Phân bổ đồng đều
-        Allo_1 = pd.DataFrame({'Asset': top_10_symbols, 'Weight': [1/len(top_10_symbols)]*len(top_10_symbols)})
-
-        # Chiến lược 80-20
-        mcp = train_price.columns
-        Allo_2_temp = train_price.sum().sort_values(ascending=False).reset_index()
-        Allo_2_temp.columns = ['Asset','Er']
-        top_count = int(0.2 * len(mcp))
-        bottom_count = len(mcp) - top_count
-        top_weights = [0.8 / top_count] * top_count
-        bottom_weights = [0.2 / bottom_count] * bottom_count
-        Allo_2_temp['Weight'] = top_weights + bottom_weights
-        Allo_2 = Allo_2_temp[['Asset','Weight']]
-
-        Er_lstm_gru, std_lstm_gru = port_char(results_LSTM_GRU, test_price)
-        Er_1, std_1 = port_char(Allo_1, test_price)
-        Er_2, std_2 = port_char(Allo_2, test_price)
-
-        shr_lstm_gru = sharpe_port(results_LSTM_GRU, test_price)
-        shr_1 = sharpe_port(Allo_1, test_price)
-        shr_2 = sharpe_port(Allo_2, test_price)
-
-        table_ = pd.DataFrame({
-            'Expected_return': [Er_lstm_gru, Er_1, Er_2],
-            'Standard_deviation': [std_lstm_gru, std_1, std_2],
-            'Sharpe_ratio': [shr_lstm_gru, shr_1, shr_2]
-        }, index=['LSTM_GRU','Phân bổ đều','80-20'])
-
-        st.write("**Bảng so sánh danh mục trên Test set**")
-        st.dataframe(table_.T)
-
-        fig3, ax3 = plt.subplots(figsize=(8, 4))
-        categories = table_.columns.values
-        er_vals = table_['Expected_return'].values
-        std_vals = table_['Standard_deviation'].values
-        shr_vals = table_['Sharpe_ratio'].values
-
-        x_ = np.arange(len(categories))
-        w_ = 0.2
-
-        ax3.bar(x_ - w_, er_vals, w_, label='Expected_return')
-        ax3.bar(x_, std_vals, w_, label='Standard_deviation')
-        ax3.bar(x_ + w_, shr_vals, w_, label='Sharpe_ratio', color='green')
-
-        ax3.set_xticks(x_)
-        ax3.set_xticklabels(categories)
-        ax3.set_ylabel("Giá trị")
-        ax3.legend()
-        ax3.set_title("So sánh Er, Std_dev, Sharpe (Test set)")
-
-        st.pyplot(fig3)
         st.success("Hoàn tất quá trình tính toán & trực quan.")
 
 if __name__ == '__main__':
