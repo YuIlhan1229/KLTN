@@ -1,11 +1,12 @@
 import streamlit as st
-import base64
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import squarify
 import random
+import base64
+from datetime import datetime, timedelta
 
 from tensorflow.keras import backend as K
 from tensorflow.keras.models import Sequential
@@ -59,11 +60,41 @@ def add_bg_from_local(image_file):
 
 add_bg_from_local('background.png')
 
-st.logo("big_logo.png",size='large',icon_image="small_logo.png")
+st.logo("big_logo.png", size='large', icon_image="small_logo.png")
 st.image("banner.png")
 
 st.markdown('<h1 class="custom-title">Applying deep learning to portfolio optimization in the Vietnamese stock market</h1>', unsafe_allow_html=True)
 st.markdown('<p style="color: #30475E;">Select the data input method you want.</p>', unsafe_allow_html=True)
+
+#========================
+# Hiển thị khoảng thời gian đã chọn
+#========================
+col1, col2 = st.columns(2)
+with col1:
+    start_date = st.date_input(":red[Choose start date]", value=None)
+with col2:
+    end_date = st.date_input(":red[Choose end date]", value=None)
+
+# Ngày hôm nay
+today = datetime.today().date()
+
+if start_date is not None and end_date is not None:
+    if end_date > today:
+        st.error("Lỗi: The end date cannot be later than today.")
+    elif start_date <= end_date and (end_date - start_date) > timedelta(weeks=4):
+        st.success(f"You have chosen the period from {start_date} to {end_date}")
+    else:
+        st.error("Lỗi: The end date must be after the start date, and the period must be sufficiently long.")
+
+if start_date and end_date and start_date <= end_date and (end_date - start_date) > timedelta(weeks=4) and end_date < today:
+    if st.button("Click the button to start"):
+        st.success("Automated trading and portfolio allocation in progress.")
+        start_date_str = start_date.strftime('%Y-%m-%d')
+        end_date_str = end_date.strftime('%Y-%m-%d')
+
+#========================
+# Các hàm lấy dữ liệu và xây dựng mô hình
+#========================
 
 def fetch_stock_data(ticker, start_date, end_date):
     """Tải dữ liệu giá đóng cửa, trả về DataFrame gồm cột 'close' và index='time'."""
@@ -115,33 +146,21 @@ def port_char(weights_df, returns_df):
     """
     Tính (Er, std_dev) cho danh mục.
     - weights_df: DataFrame gồm ['Asset','Weight'].
-    - returns_df: DataFrame gồm cột = tên Asset, giá trị = returns (theo ngày/tuần...).
+    - returns_df: DataFrame gồm cột = tên Asset, giá trị = returns.
     """
-    # 1) Lấy Er
     Er_ = returns_df.mean().reset_index()
     Er_.columns = ['Asset','Er']
-    
-    # 2) Merge
     weights_merged = pd.merge(weights_df, Er_, on='Asset', how='left')
     weights_merged['Er'].fillna(0, inplace=True)
-
-    # 3) Er danh mục
     portfolio_er = np.dot(weights_merged['Weight'], weights_merged['Er'])
-
-    # 4) Ma trận hiệp phương sai
     cov_matrix = returns_df.cov()
     asset_order = weights_merged['Asset']
     cov_matrix = cov_matrix.loc[asset_order, asset_order]
-
     w = weights_merged['Weight'].values
     portfolio_std_dev = np.sqrt(np.dot(w, np.dot(cov_matrix, w)))
-
     return portfolio_er, portfolio_std_dev
 
 def sharpe_port(weights_df, returns_df, rf=0.016, freq=252):
-    """
-    Tính Sharpe Ratio trên cùng tần suất (daily/weekly...) với returns_df.
-    """
     portfolio_er, portfolio_std_dev = port_char(weights_df, returns_df)
     rf_period = rf / freq
     sharpe_ratio_ = (portfolio_er - rf_period) / (portfolio_std_dev + 1e-12)
@@ -152,10 +171,9 @@ def sharpe_port(weights_df, returns_df, rf=0.016, freq=252):
 #========================
 
 def main():
-    st.set_page_config(page_title="Applying deep learning to portfolio optimization in the Vietnamese stock market",page_icon="📊")
+    st.set_page_config(page_title="Applying deep learning to portfolio optimization in the Vietnamese stock market", page_icon="📊")
     
     st.title("Danh mục đầu tư tối ưu thông qua mô hình LSTM-GRU")
-
     st.markdown("""
     Ứng dụng này có hai tùy chọn:
     1. Tải lên file CSV có dữ liệu 'time', 'ticker', 'close'.
@@ -165,15 +183,17 @@ def main():
 
     industry = st.selectbox("Chọn ngành:", ["Xây dựng"], index=0)
     
+    # Các input ngày đã được xử lý phía trên
+    # Nếu đã nhập start_date_str và end_date_str, sử dụng chúng, nếu không dùng mặc định
     default_start = "2018-01-01"
     default_end   = "2024-12-31"
+    if 'start_date_str' not in locals():
+        start_date_str = default_start
+    if 'end_date_str' not in locals():
+        end_date_str = default_end
 
-    col1, col2 = st.columns(2)
-    with col1:
-        start_date = st.text_input("Ngày bắt đầu (YYYY-MM-DD):", value=default_start)
-    with col2:
-        end_date = st.text_input("Ngày kết thúc (YYYY-MM-DD):", value=default_end)
-
+    st.write(f"**Dữ liệu từ {start_date_str} đến {end_date_str}**")
+    
     # Tính năng Upload CSV
     st.write("**Tải lên file CSV (tuỳ chọn):**")
     uploaded_file = st.file_uploader("Chọn file CSV (cấu trúc gồm cột [time, ticker, close])", type=['csv'])
@@ -184,23 +204,17 @@ def main():
         #============================
         # BƯỚC 1: LẤY DỮ LIỆU
         #============================
-
         if uploaded_file is not None:
-            # Người dùng đã up file => ta dùng data từ file
             st.success("Đang sử dụng dữ liệu từ file CSV đã upload.")
             combined_df = pd.read_csv(uploaded_file)
-            # Kiểm tra cột
             required_cols = {'time','ticker','close'}
             if not required_cols.issubset(combined_df.columns):
                 st.error("File CSV thiếu cột bắt buộc. Cần có [time, ticker, close].")
                 return
-            # Convert time => datetime & sort
             combined_df['time'] = pd.to_datetime(combined_df['time'])
             combined_df.sort_values('time', inplace=True)
             combined_df.reset_index(drop=True, inplace=True)
-
         else:
-            # Không có file => ta lấy dữ liệu từ vnstock
             st.info("Không upload file CSV => Tải dữ liệu từ vnstock.")
             stock = Vnstock().stock(symbol='VN30F1M', source='VCI')
             list_icb = stock.listing.symbols_by_industries()
@@ -209,15 +223,13 @@ def main():
             list_exchange = stock.listing.symbols_by_exchange()[['symbol','type','exchange']]
             df_filtered = list_exchange[
                 list_exchange['symbol'].isin(list_ticker) &
-                (
-                    (list_exchange['exchange'] == 'HSX') | (list_exchange['exchange'] == 'HNX')
-                )
+                ((list_exchange['exchange'] == 'HSX') | (list_exchange['exchange'] == 'HNX'))
             ]
             list_ticker = df_filtered['symbol'].to_list()
 
             all_data = {}
             for ticker in list_ticker:
-                df_ = fetch_stock_data(ticker, start_date, end_date)
+                df_ = fetch_stock_data(ticker, start_date_str, end_date_str)
                 if df_ is not None and not df_.empty:
                     all_data[ticker] = df_
 
@@ -233,17 +245,13 @@ def main():
         #============================
         # BƯỚC 2: XỬ LÝ DỮ LIỆU
         #============================
-
-        # pivot_df: index = time, columns = ticker, values = close
         pivot_df = combined_df.pivot(index="time", columns="ticker", values="close")
         pivot_df.sort_index(inplace=True)
         pivot_df.fillna(0, inplace=True)
 
-        # Tính daily_returns
         daily_returns = pivot_df.pct_change()
         mean_daily_returns = daily_returns.mean()
         std_daily_returns  = daily_returns.std()
-
         days_per_year   = 252
         annual_returns  = mean_daily_returns * days_per_year
         annual_volatility = std_daily_returns * np.sqrt(days_per_year)
@@ -268,16 +276,12 @@ def main():
         train_price = pivot_top10_df.loc[pivot_top10_df.index.year < 2024]
         test_price  = pivot_top10_df.loc[pivot_top10_df.index.year == 2024]
 
-        train_price = train_price.reset_index()
-        train_price.drop(columns=['time'], inplace=True)
-
-        test_price = test_price.reset_index()
-        test_price.drop(columns=['time'], inplace=True)
+        train_price = train_price.reset_index(drop=True)
+        test_price = test_price.reset_index(drop=True)
 
         #============================
         # BƯỚC 4: HUẤN LUYỆN MÔ HÌNH LSTM-GRU
         #============================
-
         X_train = train_price.values[np.newaxis, :, :]
         y_train = np.zeros((1, train_price.shape[1]))
 
@@ -287,7 +291,6 @@ def main():
         model_lstm_gru.compile(optimizer=Adam(), loss=sharpe_model.sharpe_loss)
 
         st.write("**Bắt đầu huấn luyện mô hình...** (epochs=100, batch_size=32)")
-
         model_lstm_gru.fit(X_train, y_train, epochs=100, batch_size=32, shuffle=False, verbose=1)
 
         weights_lstm_gru = model_lstm_gru.predict(X_train)[0]
@@ -305,51 +308,32 @@ def main():
         plt.xticks(rotation=0)
         st.pyplot(fig)
 
-        # Treemap
-        fig2, ax2 = plt.subplots(figsize=(15,15))
-        square_plot_test = pd.DataFrame({
-            'Cổ phiếu': sorted_df['Asset'],
-            'Tỷ trọng': sorted_df['Weight']
-        })
-        square_plot_test['Nhãn'] = square_plot_test['Cổ phiếu'] + '\n' + square_plot_test['Tỷ trọng'].apply(lambda x: f"{x*100:.2f}%")
-
-        colors = ['#91DCEA', '#64CDCC', '#5FBB68', '#F9D23C', '#F9A729', '#FD6F30','#B0E0E6','#FFE4E1','#D8BFD8','#FFB6C1']
-        squarify.plot(sizes=square_plot_test['Tỷ trọng'], label=square_plot_test['Nhãn'], color=colors,
-                      alpha=.8, edgecolor='black', linewidth=2, text_kwargs={'fontsize':10})
-        plt.axis('off')
-        plt.title('Treemap phân bổ danh mục (LSTM-GRU)')
-        st.pyplot(fig2)
-
         #============================
-        # BƯỚC 5: TÍNH TOÁN, SO SÁNH VỚI 2 PHƯƠNG PHÁP
+        # BƯỚC 5: TÍNH TOÁN VÀ SO SÁNH VỚI 2 PHƯƠNG PHÁP
         #============================
-        st.write("**So sánh với 2 phương pháp: Phân bổ đều & 80-20**")
+        st.write("**So sánh với 2 phương pháp: Phân bổ đồng đều & 80-20**")
 
-        # Allo_1 (phân bổ đều)
-        Allo_1 = results_LSTM_GRU[['Asset']].copy()
-        Allo_1['Weight'] = 1 / 10
+        # Phân bổ đồng đều
+        Allo_1 = pd.DataFrame({'Asset': top_10_symbols, 'Weight': [1/len(top_10_symbols)]*len(top_10_symbols)})
 
-        # Allo_2 (80-20)
-        mcp = train_price.columns  # cột = top_10_symbols
+        # Chiến lược 80-20
+        mcp = train_price.columns
         Allo_2_temp = train_price.sum().sort_values(ascending=False).reset_index()
         Allo_2_temp.columns = ['Asset','Er']
         top_count = int(0.2 * len(mcp))
         bottom_count = len(mcp) - top_count
-
-        top_weights = [0.8 / (0.2 * len(mcp))] * top_count
-        bottom_weights = [0.2 / (0.8 * len(mcp))] * bottom_count
-
+        top_weights = [0.8 / top_count] * top_count
+        bottom_weights = [0.2 / bottom_count] * bottom_count
         Allo_2_temp['Weight'] = top_weights + bottom_weights
         Allo_2 = Allo_2_temp[['Asset','Weight']]
 
-        # Tính Expected_return, Standard_deviation, Sharpe_ratio => test set
-        Er_lstm_gru,  std_lstm_gru  = port_char(results_LSTM_GRU, test_price)
-        Er_1,     std_1     = port_char(Allo_1,          test_price)
-        Er_2,     std_2     = port_char(Allo_2,          test_price)
+        Er_lstm_gru, std_lstm_gru = port_char(results_LSTM_GRU, test_price)
+        Er_1, std_1 = port_char(Allo_1, test_price)
+        Er_2, std_2 = port_char(Allo_2, test_price)
 
         shr_lstm_gru = sharpe_port(results_LSTM_GRU, test_price)
-        shr_1    = sharpe_port(Allo_1,          test_price)
-        shr_2    = sharpe_port(Allo_2,          test_price)
+        shr_1 = sharpe_port(Allo_1, test_price)
+        shr_2 = sharpe_port(Allo_2, test_price)
 
         table_ = pd.DataFrame({
             'Expected_return': [Er_lstm_gru, Er_1, Er_2],
@@ -362,15 +346,15 @@ def main():
 
         fig3, ax3 = plt.subplots(figsize=(8, 4))
         categories = table_.columns.values
-        er_vals    = table_['Expected_return'].values
-        std_vals   = table_['Standard_deviation'].values
-        shr_vals   = table_['Sharpe_ratio'].values
+        er_vals = table_['Expected_return'].values
+        std_vals = table_['Standard_deviation'].values
+        shr_vals = table_['Sharpe_ratio'].values
 
         x_ = np.arange(len(categories))
         w_ = 0.2
 
-        ax3.bar(x_ - w_, er_vals,  w_, label='Expected_return')
-        ax3.bar(x_,       std_vals, w_, label='Standard_deviation')
+        ax3.bar(x_ - w_, er_vals, w_, label='Expected_return')
+        ax3.bar(x_, std_vals, w_, label='Standard_deviation')
         ax3.bar(x_ + w_, shr_vals, w_, label='Sharpe_ratio', color='green')
 
         ax3.set_xticks(x_)
@@ -380,7 +364,6 @@ def main():
         ax3.set_title("So sánh Er, Std_dev, Sharpe (Test set)")
 
         st.pyplot(fig3)
-
         st.success("Hoàn tất quá trình tính toán & trực quan (có tính năng upload CSV).")
 
 if __name__ == '__main__':
