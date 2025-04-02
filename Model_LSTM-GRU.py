@@ -84,7 +84,7 @@ with col_title:
         """
         <div style="text-align: center;">
             <h1 style="margin-bottom: 0px; color: #0B5394; font-size: 32px;">TRƯỜNG ĐẠI HỌC NGÂN HÀNG THÀNH PHỐ HỒ CHÍ MINH</h1>
-            <h2 style="margin-top: 5px; color: #333; font-size: 24px;">Xây dựng danh mục đầu tư tối ưu bằng mô hình LSTM - GRU</h2>
+            <h2 style="margin-top: 5px; color: #333; font-size: 36px;">Xây dựng danh mục đầu tư tối ưu bằng mô hình LSTM - GRU</h2>
         </div>
         """,
         unsafe_allow_html=True
