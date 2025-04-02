@@ -33,6 +33,37 @@ warnings.filterwarnings('ignore')
 # 1) ĐỊNH NGHĨA CÁC HÀM, MÔ HÌNH
 #========================
 
+def add_bg_from_local(image_file):
+    with open(image_file, "rb") as image_file:
+        encoded_string = base64.b64encode(image_file.read())
+    st.markdown(
+    f"""
+    <style>
+    .stApp {{
+        background-image: url(data:image/{"png"};base64,{encoded_string.decode()});
+        background-size: cover;
+        background-color: rgba(255, 255, 255, 0.7); /* Điều chỉnh độ mờ ở đây */
+        background-blend-mode: overlay;
+    }}
+    .custom-title {{
+        color: #F05454;
+    }}
+    .stMarkdown, .stText {{
+        color: #30475E !important;
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True
+    )
+
+add_bg_from_local('background.png')
+
+st.logo("big_logo.png",size='large',icon_image="small_logo.png")
+st.image("banner.png")
+
+st.markdown('<h1 class="custom-title">Applying deep learning to portfolio optimization in the Vietnamese stock market</h1>', unsafe_allow_html=True)
+st.markdown('<p style="color: #30475E;">Select the data input method you want.</p>', unsafe_allow_html=True)
+
 def fetch_stock_data(ticker, start_date, end_date):
     """Tải dữ liệu giá đóng cửa, trả về DataFrame gồm cột 'close' và index='time'."""
     try:
@@ -120,13 +151,15 @@ def sharpe_port(weights_df, returns_df, rf=0.016, freq=252):
 #========================
 
 def main():
-    st.title("Phân tích Sharpe Ratio & Xây dựng Danh mục (Cho phép Upload CSV)")
+    st.set_page_config(page_title="Applying deep learning to portfolio optimization in the Vietnamese stock market",page_icon="📊")
+    
+    st.title("Danh mục đầu tư tối ưu thông qua mô hình LSTM-GRU")
 
     st.markdown("""
     Ứng dụng này có hai tùy chọn:
     1. Tải lên file CSV có dữ liệu 'time', 'ticker', 'close'.
     2. Tự động tải dữ liệu từ `vnstock` (nếu không upload).
-    Sau đó, ta tính Sharpe Ratio, chọn Top 10 cổ phiếu, huấn luyện LSTM-GRU.
+    Sau đó, hệ thống tự động tính Sharpe Ratio, chọn Top 10 cổ phiếu, huấn luyện LSTM-GRU.
     """)
 
     industry = st.selectbox("Chọn ngành:", ["Xây dựng"], index=0)
@@ -144,7 +177,7 @@ def main():
     st.write("**Tải lên file CSV (tuỳ chọn):**")
     uploaded_file = st.file_uploader("Chọn file CSV (cấu trúc gồm cột [time, ticker, close])", type=['csv'])
 
-    if st.button("Tính toán"):
+    if st.button("Nhấn để bắt đầu tính toán"):
         st.write("**Bắt đầu lấy dữ liệu & xử lý...**")
 
         #============================
@@ -193,7 +226,7 @@ def main():
 
             combined_df = pd.concat(all_data.values(), axis=0).reset_index(drop=True)
 
-        st.write("**Dữ liệu sau khi ghép (combined_df):**")
+        st.write("**Cấu trúc dữ liệu:**")
         st.dataframe(combined_df)
 
         #============================
