@@ -347,22 +347,6 @@ def main():
         results_LSTM_GRU['Weight (%)'] = (results_LSTM_GRU['Weight'] * 100).round(2).astype(str) + "%"
         st.dataframe(results_LSTM_GRU[['Asset', 'Weight (%)']].sort_values('Weight (%)', ascending=False))
 
-        # Hiển thị tỷ trọng phân bổ dưới dạng biểu đồ cột
-        fig, ax = plt.subplots(figsize=(12, 6))
-        sorted_df = results_LSTM_GRU.sort_values('Weight', ascending=False)
-        ax.bar(sorted_df['Asset'], sorted_df['Weight']*100, color='green')  # nhân 100 để hiển thị %
-        ax.set_xlabel('Tài sản')
-        ax.set_ylabel('Trọng số (%)')
-        ax.set_title('Phân bổ tài sản (LSTM-GRU)')
-        plt.xticks(rotation=0)
-        st.pyplot(fig)
-
-        # Hiển thị tỷ trọng phân bổ dưới dạng biểu đồ tròn (pie chart)
-        fig_pie, ax_pie = plt.subplots(figsize=(8, 8))
-        ax_pie.pie(sorted_df['Weight']*100, labels=sorted_df['Asset'], autopct='%1.1f%%', startangle=90)
-        ax_pie.set_title("Tỷ trọng phân bổ (LSTM-GRU) - Pie Chart")
-        st.pyplot(fig_pie)
-
         st.success("Hoàn tất quá trình tính toán & trực quan.")
 
 if __name__ == '__main__':
