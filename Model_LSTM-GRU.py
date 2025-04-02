@@ -84,7 +84,6 @@ with col_title:
         """
         <h2 style="margin-bottom: 0px; color: #0B5394;">TRƯỜNG ĐẠI HỌC NGÂN HÀNG</h2>
         <p style="margin-top: 0px; font-size:16px;">THÀNH PHỐ HỒ CHÍ MINH</p>
-        <h3 style="color: #333;">Dự đoán giá cổ phiếu bằng mô hình LSTM - GRU</h3>
         """,
         unsafe_allow_html=True
     )
