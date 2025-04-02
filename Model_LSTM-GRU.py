@@ -276,6 +276,7 @@ def main():
             if len(all_data) == 0:
                 st.error("Không tải được dữ liệu cổ phiếu nào. Vui lòng thử lại hoặc upload CSV.")
                 return
+            # Gộp tất cả DataFrame trong dictionary về một DataFrame:
             combined_df = pd.concat(all_data.values(), axis=0).reset_index(drop=True)
             
         st.write("Các cột của DataFrame:", combined_df.columns)
