@@ -70,7 +70,7 @@ add_bg_from_local('background.png')
 #========================
 col_logo, col_title = st.columns([1, 1])
 with col_logo:
-    st.image("Logo_HUB.png", width=10000) 
+    st.image("Logo_HUB.png", width=10) 
 with col_title:
     st.markdown('<h1 class="custom-title">Applying deep learning to portfolio optimization in the Vietnamese stock market</h1>', unsafe_allow_html=True)
 
