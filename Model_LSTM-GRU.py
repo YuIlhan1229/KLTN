@@ -68,9 +68,9 @@ add_bg_from_local('background.png')
 #========================
 # Hiển thị logo và tiêu đề
 #========================
-col_logo, col_title = st.columns([10, 10])
+col_logo, col_title = st.columns([1, 1])
 with col_logo:
-    st.image("Logo_HUB.png", width=100) 
+    st.image("Logo_HUB.png", width=10000) 
 with col_title:
     st.markdown('<h1 class="custom-title">Applying deep learning to portfolio optimization in the Vietnamese stock market</h1>', unsafe_allow_html=True)
 
