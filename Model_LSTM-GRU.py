@@ -68,23 +68,24 @@ add_bg_from_local('background.png')
 #========================
 # Hiển thị logo và tiêu đề
 #========================
-# Sử dụng st.columns để chia layout thành 2 cột:
-# - Cột đầu tiên (col_logo) dành cho logo.
-# - Cột thứ hai (col_title) dành cho tiêu đề.
-# Tỷ lệ các cột có thể tùy chỉnh (ví dụ: [1, 4] để cột tiêu đề chiếm nhiều không gian hơn).
-col_logo, col_title = st.columns([1, 7])
+# Chia layout thành 2 cột:
+#  - col_logo: cột để đặt logo
+#  - col_title: cột để đặt tiêu đề
+# Tỷ lệ [1, 4] nghĩa là cột logo chiếm 1 phần, cột tiêu đề chiếm 4 phần.
+col_logo, col_title = st.columns([1, 4])
 
 with col_logo:
-    # st.image hiển thị hình ảnh logo.
-    # Tham số 'width' điều chỉnh kích thước logo (đơn vị pixel).
-    # Thử thay đổi giá trị width (ví dụ: 100, 150, 200) để phù hợp với giao diện.
-    st.image("Logo_HUB.png", width=200)
+    # Hiển thị logo, có thể điều chỉnh 'width' để tăng/giảm kích thước ảnh
+    st.image("Logo_HUB.png", width=80)  
 
 with col_title:
-    # Sử dụng st.markdown để hiển thị tiêu đề với HTML/CSS tùy chỉnh.
-    # Bạn có thể chỉnh sửa màu sắc, kích thước hoặc kiểu chữ thông qua class 'custom-title'.
+    # Tiêu đề và mô tả, dùng HTML + CSS tuỳ chỉnh (unsafe_allow_html=True)
     st.markdown(
-        '<h1 class="custom-title">Applying deep learning to portfolio optimization in the Vietnamese stock market</h1>', 
+        """
+        <h2 style="margin-bottom: 0px; color: #0B5394;">TRƯỜNG ĐẠI HỌC NGÂN HÀNG</h2>
+        <p style="margin-top: 0px; font-size:16px;">THÀNH PHỐ HỒ CHÍ MINH</p>
+        <h3 style="color: #333;">Dự đoán giá cổ phiếu bằng mô hình LSTM - GRU</h3>
+        """,
         unsafe_allow_html=True
     )
 
