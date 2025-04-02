@@ -14,6 +14,11 @@ from tensorflow.keras.layers import Dense, LSTM, GRU
 from tensorflow.keras.optimizers import Adam
 from vnstock import Vnstock
 
+st.set_page_config(
+    page_title="Applying deep learning to portfolio optimization in the Vietnamese stock market", 
+    page_icon="📊"
+)
+
 # Vì Streamlit dùng cơ chế vẽ inline, ta import pyplot ở chế độ "inline" bằng matplotlib:
 plt.switch_backend('Agg')
 
@@ -162,9 +167,7 @@ def sharpe_port(weights_df, returns_df, rf=0.016, freq=252):
 # 2) CODE STREAMLIT
 #========================
 
-def main():
-    st.set_page_config(page_title="Applying deep learning to portfolio optimization in the Vietnamese stock market", page_icon="📊")
-    
+def main():   
     st.title("Danh mục đầu tư tối ưu thông qua mô hình LSTM-GRU")
     st.markdown("""
     Ứng dụng này có hai tùy chọn:
