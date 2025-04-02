@@ -70,7 +70,7 @@ add_bg_from_local('background.png')
 #========================
 col_logo, col_title = st.columns([1, 5])
 with col_logo:
-    st.image("small_logo.png", width=100)  # Đảm bảo file "small_logo.png" tồn tại
+    st.image("Logo_HUB.png", width=100) 
 with col_title:
     st.markdown('<h1 class="custom-title">Applying deep learning to portfolio optimization in the Vietnamese stock market</h1>', unsafe_allow_html=True)
 
