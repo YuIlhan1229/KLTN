@@ -190,23 +190,23 @@ def main():
 
     col1, col2 = st.columns(2)
     with col1:
-        start_date = st.date_input(":red[Choose start date]", value=default_start_date)
+        start_date = st.date_input("[Choose start date]", value=default_start_date)
     with col2:
-        end_date = st.date_input(":red[Choose end date]", value=default_end_date)
+        end_date = st.date_input("[Choose end date]", value=default_end_date)
 
     today = datetime.today().date()
 
     if start_date and end_date:
         if end_date > today:
             st.error("Lỗi: The end date cannot be later than today.")
-        elif start_date <= end_date and (end_date - start_date) > timedelta(weeks=4):
-            st.success(f"You have chosen the period from {start_date} to {end_date}")
+        # Nếu người dùng không thay đổi ngày (vẫn mặc định)
+        elif:
+            if start_date <= end_date and (end_date - start_date) > timedelta(weeks=4):
+                st.success(f"You have chosen the period from {start_date} to {end_date}")
+            else start_date == default_start_date and end_date == default_end_date:
+                st.info(f"Default date range selected: {default_start} to {default_end}")
         else:
             st.error("Lỗi: The end date must be after the start date, and the period must be sufficiently long.")
-    
-    # Nếu người dùng không thay đổi ngày (vẫn mặc định)
-    if start_date == default_start_date and end_date == default_end_date:
-        st.info(f"Default date range selected: {default_start} to {default_end}")
 
     # Sử dụng giá trị ngày dưới dạng chuỗi
     start_date_str = start_date.strftime('%Y-%m-%d')
