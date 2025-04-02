@@ -68,18 +68,12 @@ add_bg_from_local('background.png')
 #========================
 # Hiển thị logo và tiêu đề
 #========================
-# Chia layout thành 2 cột:
-#  - col_logo: cột để đặt logo
-#  - col_title: cột để đặt tiêu đề
-# Tỷ lệ [1, 4] nghĩa là cột logo chiếm 1 phần, cột tiêu đề chiếm 4 phần.
 col_logo, col_title = st.columns([1, 4])
 
 with col_logo:
-    # Hiển thị logo, có thể điều chỉnh 'width' để tăng/giảm kích thước ảnh
     st.image("Logo_HUB.png", width=400)
 
 with col_title:
-    # Hiển thị tiêu đề chính: Tên trường
     st.markdown(
         """
         <h1 style="color: #0B5394; text-align: center; font-size: 32px;">TRƯỜNG ĐẠI HỌC NGÂN HÀNG THÀNH PHỐ HỒ CHÍ MINH</h1>
@@ -87,7 +81,6 @@ with col_title:
         unsafe_allow_html=True
     )
 
-# Tiêu đề phụ độc lập (không nằm trong layout 2 cột)
 st.markdown(
     """
     <h2 style="color: #333; text-align: center; font-size: 40px; margin-top: 10px;">
@@ -174,7 +167,7 @@ def main():
     Ứng dụng này có hai tùy chọn:
     1. Tải lên file CSV có dữ liệu 'time', 'ticker', 'close'.
     2. Tự động tải dữ liệu từ `vnstock` (nếu không upload).
-    Sau đó, hệ thống tự động tính Sharpe Ratio, chọn Top 10 cổ phiếu, huấn luyện LSTM-GRU.
+    Sau đó, hệ thống tự động tính Sharpe Ratio, chọn Top 10 cổ phiếu, huấn luyện mô hình LSTM-GRU.
     """)
 
     industry = st.selectbox("Chọn ngành:", ["Xây dựng"], index=0)
@@ -184,7 +177,6 @@ def main():
     #========================
     default_start = "2018-01-01"
     default_end   = "2024-12-31"
-    # Chuyển đổi chuỗi sang date object
     default_start_date = datetime.strptime(default_start, '%Y-%m-%d').date()
     default_end_date = datetime.strptime(default_end, '%Y-%m-%d').date()
 
@@ -203,12 +195,11 @@ def main():
             if start_date <= end_date and (end_date - start_date) > timedelta(weeks=4):
                 st.success(f"You have chosen the period from {start_date} to {end_date}")
             elif start_date == default_start_date and end_date == default_end_date:
-                st.info(f"Default date range selected: {default_start} to {default_end}")    # Nếu người dùng không thay đổi ngày (vẫn mặc định)
+                st.info(f"Default date range selected: {default_start} to {default_end}")
             else:
                 st.error("Lỗi: The end date must be after the start date, and the period must be sufficiently long.")
 
-
-    # Sử dụng giá trị ngày dưới dạng chuỗi
+    # Chuyển đổi ngày sang chuỗi
     start_date_str = start_date.strftime('%Y-%m-%d')
     end_date_str = end_date.strftime('%Y-%m-%d')
     
@@ -226,12 +217,15 @@ def main():
         if uploaded_file is not None:
             st.success("Đang sử dụng dữ liệu từ file CSV đã upload.")
             combined_df = pd.read_csv(uploaded_file)
+            # Chuẩn hóa tên cột: chuyển về chữ thường và loại bỏ khoảng trắng
+            combined_df.columns = combined_df.columns.str.lower().str.strip()
             required_cols = {'time','ticker','close'}
             if not required_cols.issubset(combined_df.columns):
                 st.error("File CSV thiếu cột bắt buộc. Cần có [time, ticker, close].")
                 return
             combined_df['time'] = pd.to_datetime(combined_df['time'])
             combined_df.sort_values('time', inplace=True)
+            # Ở trường hợp CSV, cột "time" vẫn nằm trong DataFrame
             combined_df.reset_index(drop=True, inplace=True)
         else:
             st.info("Không upload file CSV => Tải dữ liệu từ vnstock.")
@@ -254,17 +248,16 @@ def main():
             if len(all_data) == 0:
                 st.error("Không tải được dữ liệu cổ phiếu nào. Vui lòng thử lại hoặc upload CSV.")
                 return
-            combined_df['time'] = pd.to_datetime(combined_df['time'])
-            combined_df = pd.concat(all_data.values(), axis=0).reset_index(drop=True)
+            # Khi dùng vnstock, reset_index() KHÔNG drop để giữ cột "time"
+            combined_df = pd.concat(all_data.values(), axis=0).reset_index()
 
         st.write("Các cột của combined_df:", combined_df.columns)
-
-        # Nếu cần chuyển về chữ thường và loại bỏ khoảng trắng:
-        # combined_df.columns = combined_df.columns.str.lower().str.strip()
 
         #============================
         # BƯỚC 2: XỬ LÝ DỮ LIỆU
         #============================
+        # Chú ý: Trong trường hợp CSV, DataFrame đã có cột "time"
+        # Trong trường hợp vnstock, reset_index() không drop nên cột "time" sẽ xuất hiện.
         pivot_df = combined_df.pivot(index="time", columns="ticker", values="close")
         pivot_df.sort_index(inplace=True)
         pivot_df.fillna(0, inplace=True)
