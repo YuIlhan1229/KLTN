@@ -68,7 +68,7 @@ add_bg_from_local('background.png')
 #========================
 # Hiển thị logo và tiêu đề
 #========================
-col_logo, col_title = st.columns([1, 5])
+col_logo, col_title = st.columns([10, 10])
 with col_logo:
     st.image("Logo_HUB.png", width=100) 
 with col_title:
