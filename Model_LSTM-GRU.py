@@ -64,32 +64,6 @@ def add_bg_from_local(image_file):
     )
 
 #========================
-# Hiển thị khoảng thời gian đã chọn
-#========================
-col1, col2 = st.columns(2)
-with col1:
-    start_date = st.date_input(":red[Choose start date]", value=None)
-with col2:
-    end_date = st.date_input(":red[Choose end date]", value=None)
-
-# Ngày hôm nay
-today = datetime.today().date()
-
-if start_date is not None and end_date is not None:
-    if end_date > today:
-        st.error("Lỗi: The end date cannot be later than today.")
-    elif start_date <= end_date and (end_date - start_date) > timedelta(weeks=4):
-        st.success(f"You have chosen the period from {start_date} to {end_date}")
-    else:
-        st.error("Lỗi: The end date must be after the start date, and the period must be sufficiently long.")
-
-if start_date and end_date and start_date <= end_date and (end_date - start_date) > timedelta(weeks=4) and end_date < today:
-    if st.button("Click the button to start"):
-        st.success("Automated trading and portfolio allocation in progress.")
-        start_date_str = start_date.strftime('%Y-%m-%d')
-        end_date_str = end_date.strftime('%Y-%m-%d')
-
-#========================
 # Các hàm lấy dữ liệu và xây dựng mô hình
 #========================
 
@@ -177,6 +151,32 @@ def main():
     """)
 
     industry = st.selectbox("Chọn ngành:", ["Xây dựng"], index=0)
+
+    #========================
+    # Hiển thị khoảng thời gian đã chọn
+    #========================
+    col1, col2 = st.columns(2)
+    with col1:
+        start_date = st.date_input(":red[Choose start date]", value=None)
+    with col2:
+        end_date = st.date_input(":red[Choose end date]", value=None)
+
+    # Ngày hôm nay
+    today = datetime.today().date()
+
+    if start_date is not None and end_date is not None:
+        if end_date > today:
+            st.error("Lỗi: The end date cannot be later than today.")
+        elif start_date <= end_date and (end_date - start_date) > timedelta(weeks=4):
+            st.success(f"You have chosen the period from {start_date} to {end_date}")
+        else:
+            st.error("Lỗi: The end date must be after the start date, and the period must be sufficiently long.")
+
+    if start_date and end_date and start_date <= end_date and (end_date - start_date) > timedelta(weeks=4) and end_date < today:
+        if st.button("Click the button to start"):
+            st.success("Automated trading and portfolio allocation in progress.")
+            start_date_str = start_date.strftime('%Y-%m-%d')
+            end_date_str = end_date.strftime('%Y-%m-%d')
     
     # Các input ngày đã được xử lý phía trên
     # Nếu đã nhập start_date_str và end_date_str, sử dụng chúng, nếu không dùng mặc định
