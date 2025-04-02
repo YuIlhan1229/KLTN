@@ -254,6 +254,7 @@ def main():
             if len(all_data) == 0:
                 st.error("Không tải được dữ liệu cổ phiếu nào. Vui lòng thử lại hoặc upload CSV.")
                 return
+            combined_df['time'] = pd.to_datetime(combined_df['time'])
             combined_df = pd.concat(all_data.values(), axis=0).reset_index(drop=True)
 
         st.write("Các cột của combined_df:", combined_df.columns)
