@@ -277,7 +277,8 @@ def main():
                 st.error("Không tải được dữ liệu cổ phiếu nào. Vui lòng thử lại hoặc upload CSV.")
                 return
             combined_df = pd.concat(all_data.values(), axis=0).reset_index(drop=True)
-
+            
+        st.write("Các cột của DataFrame:", combined_df.columns)
         st.write("Dữ liệu của combined_df:", combined_df)
         # Chuẩn hóa tên cột: chuyển về chữ thường và loại bỏ khoảng trắng thừa
         combined_df.columns = combined_df.columns.str.lower().str.strip()
