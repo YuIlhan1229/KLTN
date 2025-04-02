@@ -79,17 +79,23 @@ with col_logo:
     st.image("Logo_HUB.png", width=400)
 
 with col_title:
-    # Tiêu đề được căn giữa với CSS, tiêu đề 1 và tiêu đề 2 độc lập, có kích thước chữ khác nhau
+    # Hiển thị tiêu đề chính: Tên trường
     st.markdown(
         """
-        <div style="text-align: center;">
-            <h1 style="margin-bottom: 0px; color: #0B5394; font-size: 32px;">TRƯỜNG ĐẠI HỌC NGÂN HÀNG THÀNH PHỐ HỒ CHÍ MINH</h1>
-            <h2 style="margin-top: 5px; color: #333; font-size: 36px;">Xây dựng danh mục đầu tư tối ưu bằng mô hình LSTM - GRU</h2>
-        </div>
+        <h1 style="color: #0B5394; text-align: center;">TRƯỜNG ĐẠI HỌC NGÂN HÀNG THÀNH PHỐ HỒ CHÍ MINH</h1>
         """,
         unsafe_allow_html=True
     )
 
+# Tiêu đề phụ độc lập (không nằm trong layout 2 cột)
+st.markdown(
+    """
+    <h2 style="color: #333; text-align: center; font-size: 32px; margin-top: 10px;">
+        Xây dựng danh mục đầu tư tối ưu bằng mô hình LSTM - GRU
+    </h2>
+    """,
+    unsafe_allow_html=True
+)
 
 #========================
 # Các hàm lấy dữ liệu và xây dựng mô hình
