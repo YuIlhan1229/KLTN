@@ -233,10 +233,8 @@ def main():
         else:
             if start_date <= end_date and (end_date - start_date) > timedelta(weeks=4):
                 st.success(f"Bạn đã chọn dữ liệu từ {start_date} đến {end_date}.")
-            elif start_date == default_start_date and end_date == default_end_date:
-                st.info(f"Default date range selected: {default_start} to {default_end}")
             else:
-                st.error("Lỗi: The end date must be after the start date, and the period must be sufficiently long.")
+                st.error("Lỗi: Cần ít nhất 2 năm dữ liệu để huấn luyện mô hình.")
 
     # Sử dụng giá trị ngày dưới dạng chuỗi
     start_date_str = start_date.strftime('%Y-%m-%d')
@@ -326,13 +324,21 @@ def main():
         pivot_top10_df = pivot_df[top_10_symbols]
 
         #============================
-        # BƯỚC 3: TÁCH TRAIN / TEST
+        # BƯỚC 3: TÁCH TRAIN / TEST (theo năm)
         #============================
-        train_price = pivot_top10_df.loc[pivot_top10_df.index.year < 2024]
-        test_price  = pivot_top10_df.loc[pivot_top10_df.index.year == 2024]
+        min_year = pivot_top10_df.index.year.min()
+        max_year = pivot_top10_df.index.year.max()
 
+        test_year = max_year
+        train_years = list(range(min_year, test_year))
+
+        train_price = pivot_top10_df.loc[pivot_top10_df.index.year.isin(train_years)]
+        test_price  = pivot_top10_df.loc[pivot_top10_df.index.year == test_year]
+
+        # Reset index
         train_price = train_price.reset_index(drop=True)
         test_price = test_price.reset_index(drop=True)
+
 
         #============================
         # BƯỚC 4: HUẤN LUYỆN MÔ HÌNH LSTM-GRU
