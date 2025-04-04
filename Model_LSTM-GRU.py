@@ -19,14 +19,6 @@ st.set_page_config(
     page_icon="📊"
 )
 
-# Cấu hình logging
-logging.basicConfig(
-    filename='app_log.txt',
-    level=logging.INFO,
-    format='%(asctime)s | %(levelname)s | %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
-
 # Vì Streamlit dùng cơ chế vẽ inline, ta chuyển backend của matplotlib
 plt.switch_backend('Agg')
 
