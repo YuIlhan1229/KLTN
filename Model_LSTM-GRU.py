@@ -322,13 +322,18 @@ def main():
             'annual return': annual_returns,
             'annual volatility': annual_volatility,
             'sharpe ratio': sharpe_ratio
-        }).sort_values(by='sharpe ratio', ascending=False)
+        })
 
-        # Kiểm tra nếu số lượng cổ phiếu có tính Sharpe nhỏ hơn 10
+        # Loại bỏ giá trị Inf, -Inf và NaN
+        df_sharpe = df_sharpe.replace([np.inf, -np.inf], np.nan).dropna()
+        
+        # Kiểm tra số lượng cổ phiếu có chỉ số Sharpe hợp lệ
         if df_sharpe.shape[0] < 10:
-            st.error("Ngành lựa chọn không đủ 10 cổ phiếu có dữ liệu Sharpe. Vui lòng chọn ngành khác hoặc kiểm tra lại dữ liệu.")
+            st.error("Số lượng cổ phiếu có chỉ số Sharpe hợp lệ nhỏ hơn 10. Vui lòng chọn ngành khác hoặc kiểm tra lại dữ liệu csv.")
             return
-
+        
+        # Sắp xếp giảm dần theo Sharpe Ratio và lấy Top 10
+        df_sharpe = df_sharpe.sort_values(by='sharpe ratio', ascending=False)
         st.write("**Top 10 cổ phiếu theo Sharpe Ratio**")
         top_10 = df_sharpe.head(10)
         st.dataframe(top_10)
