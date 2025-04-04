@@ -41,16 +41,17 @@ warnings.filterwarnings('ignore')
 #========================
 
 def add_bg_from_local(image_file):
+    
     with open(image_file, "rb") as image_file_obj:
         encoded_string = base64.b64encode(image_file_obj.read())
     st.markdown(
     f"""
     <style>
     .stApp {{
-        background-image: url(data:image/png;base64,{encoded_string.decode()}); # Gán ảnh nền từ base64
-        background-size: cover; # Tự động co giãn ảnh để phủ kín toàn bộ giao diện
-        background-color: rgba(255, 255, 255, 0.7); # Thêm lớp phủ trắng mờ 70% (R=255, G=255, B=255, Alpha=0.7) để nội dung dễ đọc hơn
-        background-blend-mode: overlay; # Pha trộn ảnh nền với lớp phủ trắng ở trên theo kiểu "overlay" (giúp nền mờ nhẹ nhưng vẫn giữ màu gốc)
+        background-image: url(data:image/png;base64,{encoded_string.decode()}); 
+        background-size: cover; 
+        background-color: rgba(255, 255, 255, 0.7); 
+        background-blend-mode: overlay; 
     }}
     .custom-title {{
         color: #F05454;
