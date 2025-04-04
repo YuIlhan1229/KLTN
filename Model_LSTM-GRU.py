@@ -303,6 +303,11 @@ def main():
             'sharpe ratio': sharpe_ratio
         }).sort_values(by='sharpe ratio', ascending=False)
 
+        # Kiểm tra nếu số lượng cổ phiếu có tính Sharpe nhỏ hơn 10
+        if df_sharpe.shape[0] < 10:
+            st.error("Ngành lựa chọn không đủ 10 cổ phiếu có dữ liệu Sharpe. Vui lòng chọn ngành khác hoặc kiểm tra lại dữ liệu.")
+            return
+
         st.write("**Top 10 cổ phiếu theo Sharpe Ratio**")
         top_10 = df_sharpe.head(10)
         st.dataframe(top_10)
@@ -337,7 +342,7 @@ def main():
         model_lstm_gru = build_lstm_gru_model(train_price.shape[0], train_price.shape[1])
         model_lstm_gru.compile(optimizer=Adam(), loss=sharpe_model.sharpe_loss)
 
-        st.write("**Bắt đầu huấn luyện mô hình...** (epochs=100, batch_size=32)")
+        st.write("**Bắt đầu huấn luyện mô hình...**")
         model_lstm_gru.fit(X_train, y_train, epochs=100, batch_size=32, shuffle=False, verbose=1)
 
         weights_lstm_gru = model_lstm_gru.predict(X_train)[0]
