@@ -329,7 +329,7 @@ def main():
         
         # Kiểm tra số lượng cổ phiếu có chỉ số Sharpe hợp lệ
         if df_sharpe.shape[0] < 10:
-            st.error("Số lượng cổ phiếu có chỉ số Sharpe hợp lệ nhỏ hơn 10. Vui lòng chọn ngành khác hoặc kiểm tra lại dữ liệu csv.")
+            st.error("Ngành bạn chọn có số lượng cổ phiếu đáp ứng chỉ số Sharpe hợp lệ nhỏ hơn 10. Vui lòng chọn ngành khác hoặc kiểm tra lại dữ liệu csv.")
             return
         
         # Sắp xếp giảm dần theo Sharpe Ratio và lấy Top 10
