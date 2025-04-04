@@ -167,9 +167,18 @@ def sharpe_port(weights_df, returns_df, rf=0.016, freq=252):
 
 def main():
     st.markdown("""
-    Ứng dụng này có hai tùy chọn:
-    1. Tải lên file CSV có dữ liệu 'time', 'ticker', 'close'.
-    2. Tự động tải dữ liệu từ `vnstock` (nếu không upload).
+    ### 🧪 Hướng dẫn sử dụng
+
+    Ứng dụng này có hai tùy chọn dữ liệu đầu vào:
+
+    1. **Tải lên file CSV** có chứa dữ liệu gồm các cột `'time'`, `'ticker'`, `'close'`.
+    2. **Hoặc** để hệ thống **tự động tải dữ liệu** từ `vnstock` nếu bạn không upload file.
+
+    👉 **Lưu ý:**  
+    Nếu bạn chỉ muốn **trải nghiệm nhanh ứng dụng**, **KHÔNG cần tải lên gì cả**, chỉ cần **nhấn nút "Nhấn để bắt đầu tính toán"**.  
+    Hệ thống sẽ sử dụng **mặc định ngành "Xây dựng"** và **khoảng thời gian từ 01/01/2018 đến 31/12/2024**.  
+    Điều này giúp thuận tiện cho mục đích **nghiên cứu của sinh viên**.
+
     """)
     industries = [
         'Sản xuất bia',
