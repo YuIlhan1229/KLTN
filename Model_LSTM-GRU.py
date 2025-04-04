@@ -181,31 +181,17 @@ def main():
 
     """)
     industries = [
-        'Sản xuất bia',
-     'Dịch vụ vận tải',
-     'Vận tải hành khách & Du lịch',
-     'Vận tải Thủy',
-     'Containers & Đóng gói',
-     'Ngân hàng',
-     'Khai khoáng',
-     'Chất thải & Môi trường',
-     'Sách, ấn bản & sản phẩm văn hóa',
-     'Máy công nghiệp',
-     'Phân phối xăng dầu & khí đốt',
-     'Nhựa, cao su & sợi',
-     'Môi giới chứng khoán',
-     'Sản phẩm hóa dầu, Nông dược & Hóa chất khác',
-     'Thép và sản phẩm thép',
-     'Dược phẩm',
-     'Hàng May mặc',
-     'Sản xuất & Phân phối Điện',
-     'Thực phẩm',
-     'Nuôi trồng nông & hải sản',
-     'Kho bãi, hậu cần và bảo dưỡng',
-     'Nước',
-     'Vật liệu xây dựng & Nội thất',
-     'Bất động sản',
-     'Xây dựng'
+        'Hàng & Dịch vụ Công nghiệp',
+        'Thực phẩm và đồ uống',
+        'Điện, nước & xăng dầu khí đốt',
+        'Bất động sản',
+        'Tài nguyên Cơ bản',
+        'Hàng cá nhân & Gia dụng',
+        'Hóa chất',
+        'Y tế',
+        'Du lịch và Giải trí',
+        'Dịch vụ tài chính',
+        'Xây dựng'
     ]
 
     industry = st.selectbox("Chọn ngành:", industries, index=industries.index("Xây dựng"))
@@ -265,7 +251,8 @@ def main():
             st.info("Không upload file CSV => Tải dữ liệu từ vnstock.")
             stock = Vnstock().stock(symbol='VN30F1M', source='VCI')
             list_icb = stock.listing.symbols_by_industries()
-            list_ticker = list_icb[list_icb['icb_name4'] == industry]['symbol'].to_list()
+            # Lọc danh sách ticker theo tên ngành từ cột icb_name4 hoặc icb_name2
+            list_ticker = list_icb[(list_icb['icb_name4'] == industry) | (list_icb['icb_name2'] == industry)]['symbol'].to_list()
 
             list_exchange = stock.listing.symbols_by_exchange()[['symbol','type','exchange']]
             df_filtered = list_exchange[
