@@ -177,7 +177,6 @@ def main():
     👉 **Lưu ý:**  
     Nếu bạn chỉ muốn **trải nghiệm nhanh ứng dụng**, **KHÔNG cần tải lên gì cả**, chỉ cần **nhấn nút "Nhấn để bắt đầu tính toán"**.  
     Hệ thống sẽ sử dụng **mặc định ngành "Xây dựng"** và **khoảng thời gian từ 01/01/2018 đến 31/12/2024**.  
-    Điều này giúp thuận tiện cho mục đích **nghiên cứu của sinh viên**.
 
     """)
     industries = [
@@ -232,7 +231,7 @@ def main():
             st.error("Lỗi: The end date cannot be later than today.")
         else:
             if start_date <= end_date and (end_date - start_date) > timedelta(weeks=4):
-                st.success(f"You have chosen the period from {start_date} to {end_date}")
+                st.success(f"Bạn đã chọn dữ liệu từ {start_date} đến {end_date}.")
             elif start_date == default_start_date and end_date == default_end_date:
                 st.info(f"Default date range selected: {default_start} to {default_end}")
             else:
@@ -242,7 +241,6 @@ def main():
     start_date_str = start_date.strftime('%Y-%m-%d')
     end_date_str = end_date.strftime('%Y-%m-%d')
     
-    st.write(f"**Dữ liệu từ {start_date_str} đến {end_date_str}**")
     
     st.write("**Tải lên file CSV (tuỳ chọn):**")
     uploaded_file = st.file_uploader("Chọn file CSV (cấu trúc gồm cột [time, ticker, close])", type=['csv'])
