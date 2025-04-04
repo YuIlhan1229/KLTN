@@ -207,9 +207,9 @@ def main():
 
     col1, col2 = st.columns(2)
     with col1:
-        start_date = st.date_input("[Chọn ngày bắt đầu]", value=default_start_date)
+        start_date = st.date_input("Chọn ngày bắt đầu", value=default_start_date)
     with col2:
-        end_date = st.date_input("[Chọn ngày kết thúc]", value=default_end_date)
+        end_date = st.date_input("Chọn ngày kết thúc", value=default_end_date)
 
     today = datetime.today().date()
 
