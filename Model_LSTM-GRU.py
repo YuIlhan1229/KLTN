@@ -357,26 +357,6 @@ def main():
 
         st.success("Hoàn tất quá trình tính toán.")
 
-            # ========================
-        # HIỂN THỊ TRẠNG THÁI ỨNG DỤNG
-        # ========================
-        st.markdown("---")
-        st.markdown("### 📡 Trạng thái ứng dụng")
-
-        st.write(f"🕒 Thời gian hiện tại: `{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}`")
-    
-        if uploaded_file is not None:
-            st.success("✅ Đang sử dụng dữ liệu từ CSV do người dùng tải lên.")
-        else:
-            st.info("ℹ️ Đang sử dụng dữ liệu tải từ `vnstock` API.")
-
-        st.write(f"📂 Ngành được chọn: **{industry}**")
-        st.write(f"📅 Khoảng thời gian: **{start_date_str} → {end_date_str}**")
-
-        if 'results_LSTM_GRU' in locals():
-            st.success("✅ Mô hình đã huấn luyện và phân bổ danh mục thành công.")
-        else:
-            st.warning("⚠️ Mô hình chưa được chạy.")
 
 if __name__ == '__main__':
     main()
