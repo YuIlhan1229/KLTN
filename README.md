@@ -62,5 +62,6 @@ File CSV (nếu upload) cần có 3 cột sau:
 
 ---
 
-✅ Được phát triển bởi nhóm nghiên cứu tại Trường Đại học Ngân hàng TP.HCM.
+✅ Được phát triển bởi sinh viên tại Trường Đại học Ngân hàng TP.HCM.
+
 
