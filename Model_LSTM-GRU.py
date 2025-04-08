@@ -115,7 +115,7 @@ class SharpeLossModel:
 
     def sharpe_loss(self, _, y_pred):
         """Mất mát = -Sharpe => mục tiêu là tối đa hóa Sharpe Ratio."""
-        data_normalized = self.data / (self.data[0] + K.epsilon())
+        data_normalized = self.data / (self.data[0] + K.epsilon()) # type: ignore
         portfolio_values = tf.reduce_sum(data_normalized * y_pred[0], axis=1)
         pvals_shift = portfolio_values[:-1]
         pvals_curr  = portfolio_values[1:]
@@ -153,7 +153,7 @@ def port_char(weights_df, returns_df):
     asset_order = weights_merged['Asset']
     cov_matrix = cov_matrix.loc[asset_order, asset_order]
     w = weights_merged['Weight'].values
-    portfolio_std_dev = np.sqrt(np.dot(w, np.dot(cov_matrix, w)))
+    portfolio_std_dev = np.sqrt(np.dot(w, np.dot(cov_matrix, w))) # type: ignore
     return portfolio_er, portfolio_std_dev
 
 def sharpe_port(weights_df, returns_df, rf=0.016, freq=252):
