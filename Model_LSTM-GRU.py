@@ -176,7 +176,7 @@ def main():
     2. **Hoặc** để hệ thống **tự động tải dữ liệu** từ `vnstock` nếu bạn không upload file.
 
     👉 **Lưu ý:**  
-    Nếu bạn chỉ muốn **trải nghiệm nhanh ứng dụng**, **KHÔNG cần tải lên gì cả**, chỉ cần **nhấn nút "Nhấn để bắt đầu tính toán"**.  
+    Nếu bạn muốn **trải nghiệm nhanh ứng dụng**, chỉ cần **nhấn nút "Nhấn để bắt đầu tính toán"**.  
     Hệ thống sẽ sử dụng **mặc định ngành "Xây dựng"** và **khoảng thời gian từ 01/01/2018 đến 31/12/2024**.  
 
     """)
