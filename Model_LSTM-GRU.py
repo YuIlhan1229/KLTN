@@ -92,13 +92,13 @@ st.markdown(
 # Các hàm lấy dữ liệu và xây dựng mô hình
 #========================
 
-def fetch_stock_data(ticker, start_date='2018-01-01', end_date='2024-12-31', retries=3):
+def fetch_stock_data(ticker, start_date, end_date, retries=3):
     """
     Fetch historical stock data for a given ticker from VCI source.
 
     Parameters:
     - ticker (str): Stock ticker symbol (e.g., 'VNINDEX').
-    - start_date (str): Start date for data in 'YYYY-MM-DD' format (default: '2008-01-01').
+    - start_date (str): Start date for data in 'YYYY-MM-DD' format (default: '2018-01-01').
     - end_date (str): End date for data in 'YYYY-MM-DD' format (default: '2024-12-31').
     - retries (int): Number of retry attempts for rate limit errors (default: 3).
 
