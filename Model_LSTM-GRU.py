@@ -173,11 +173,7 @@ def main():
     Ứng dụng này có hai tùy chọn dữ liệu đầu vào:
 
     1. **Tải lên file CSV** có chứa dữ liệu gồm các cột `'time'`, `'ticker'`, `'close'`.
-    2. **Hoặc** để hệ thống **tự động tải dữ liệu** từ `vnstock` nếu bạn không upload file.
-
-    👉 **Lưu ý:**  
-    Nếu bạn muốn **trải nghiệm nhanh ứng dụng**, chỉ cần **nhấn nút "Nhấn để bắt đầu tính toán"**.  
-    Hệ thống sẽ sử dụng **mặc định ngành "Xây dựng"** và **khoảng thời gian từ 01/01/2018 đến 31/12/2024**.  
+    2. **Hoặc** để hệ thống **tự động tải dữ liệu** từ `vnstock` nếu bạn không upload file.  
 
     """)
     industries = [
