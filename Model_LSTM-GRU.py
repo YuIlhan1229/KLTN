@@ -195,8 +195,8 @@ def main():
 
     Ứng dụng này có hai tùy chọn dữ liệu đầu vào:
 
-    1. **Tải lên file CSV** có chứa dữ liệu gồm các cột `'time'`, `'ticker'`, `'close'`.
-    2. **Hoặc** để hệ thống **tự động tải dữ liệu** từ `vnstock` nếu bạn không upload file.  
+    1. **Chọn ngành và thời gian:** Hệ thống sẽ tự động lấy dữ liệu và xây dựng danh mục đầu tư tương ứng.
+    2. **Hoặc** bạn có thể tải file csv có chứa dữ liệu gồm các cột `'time'`, `'ticker'`, `'close'`.  
 
     """)
     industries = [
