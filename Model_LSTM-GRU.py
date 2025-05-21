@@ -92,21 +92,44 @@ st.markdown(
 # Các hàm lấy dữ liệu và xây dựng mô hình
 #========================
 
-def fetch_stock_data(ticker, start_date, end_date):
-    """Tải dữ liệu giá đóng cửa, trả về DataFrame gồm cột 'close' và index='time'."""
-    try:
-        dt = Vnstock().stock(symbol=ticker, source='VCI').quote.history(
-            start=start_date, 
-            end=end_date
-        )
-        dt['time'] = pd.to_datetime(dt['time'])
-        dt.set_index('time', inplace=True)
-        dt = dt[['close']].copy()
-        dt['ticker'] = ticker
-        return dt
-    except Exception as e:
-        st.error(f"Lỗi khi tải dữ liệu cho {ticker}: {e}")
-        return None
+def fetch_stock_data(ticker, start_date='2018-01-01', end_date='2024-12-31', retries=3):
+    """
+    Fetch historical stock data for a given ticker from VCI source.
+
+    Parameters:
+    - ticker (str): Stock ticker symbol (e.g., 'VNINDEX').
+    - start_date (str): Start date for data in 'YYYY-MM-DD' format (default: '2008-01-01').
+    - end_date (str): End date for data in 'YYYY-MM-DD' format (default: '2024-12-31').
+    - retries (int): Number of retry attempts for rate limit errors (default: 3).
+
+    Returns:
+    - pandas.DataFrame: DataFrame with 'close' column and 'time' as index, or None if data retrieval fails.
+    """
+    for attempt in range(retries):
+        try:
+            # Initialize Vnstock and fetch historical quote data
+            stock = Vnstock().stock(symbol=ticker, source='VCI')
+            dt = stock.quote.history(start=start_date, end=end_date)
+            
+            # Process the DataFrame
+            dt['time'] = pd.to_datetime(dt['time'])
+            dt.set_index('time', inplace=True)
+            dt = dt[['close']].copy()
+            dt['ticker'] = ticker
+            return dt
+
+        except Exception as e:
+            # Handle specific rate limit errors if defined by Vnstock
+            if 'rate limit' in str(e).lower():
+                retry_seconds = getattr(e, 'retry_after', 5.0)
+                print(f"Rate limit exceeded for {ticker}. Retrying after {retry_seconds} seconds (attempt {attempt + 1}/{retries})...")
+                time.sleep(retry_seconds)
+            else:
+                print(f"Error fetching data for {ticker}: {str(e)}")
+                return None
+
+    print(f"Failed to fetch data for {ticker} after {retries} attempts.")
+    return None
 
 class SharpeLossModel:
     def __init__(self, data):
